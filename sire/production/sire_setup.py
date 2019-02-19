@@ -110,6 +110,8 @@ def combine_decharge_recharge(decharge_file,vdw_file, recharge_file):
     vdw_dic = vdw_name_LJ(vdw_file)
     decharge_dic = vdw_name_LJ(decharge_file)
     recharge_dic = vdw_name_LJ(recharge_file)
+    print (decharge_dic)
+    print (recharge_dic)
     vdw_list = []
     recharge_list = []
     decharge_list = []
@@ -121,22 +123,23 @@ def combine_decharge_recharge(decharge_file,vdw_file, recharge_file):
         decharge_list.append(el)
     middle_charge_dic = {}
     for el_no,el in enumerate(decharge_list):
-        if el.split()[1][:2] != "DU":
+        if el[2:6] == "name" and el.split()[1][:2] != "DU":
             atom_name = el.split()[1]
+            print (atom_name)
             start_charge = decharge_dic[atom_name][6]
             final_charge = recharge_dic[atom_name][6]
             middle_charge= round(np.average([start_charge,final_charge]), 5)
             middle_charge_dic[atom_name]=middle_charge
             decharge_list[el_no+6] = "\t\tfinal_charge{0:11.5f}\n".format(middle_charge)
     for el_no,el in enumerate(recharge_list):
-        if el.split()[1][:2] != "DU":
+        if el[2:6] == "name" and el.split()[1][:2] != "DU":
             atom_name = el.split()[1]
             recharge_list[el_no+5] = "\t\tinitial_charge{0:9.5f}\n".format(middle_charge_dic[atom_name])
     for el_no,el in enumerate(recharge_list):
-        if el.split()[1][:2] != "DU":
+        if el[2:6] == "name" and el.split()[1][:2] != "DU":
             atom_name = el.split()[1]
             vdw_list[el_no+5] = "\t\tinitial_charge{0:9.5f}\n".format(middle_charge_dic[atom_name])
-            vdw_list[el_no+5] = "\t\tfinal_charge{0:11.5f}\n".format(middle_charge_dic[atom_name])
+            vdw_list[el_no+6] = "\t\tfinal_charge{0:11.5f}\n".format(middle_charge_dic[atom_name])
     return decharge_list,vdw_list,recharge_list
 
 
