@@ -26,15 +26,21 @@ def make_directory(folder):
 def vdw_name_LJ(vdw_file):
     a = open(vdw_file, 'r')
     all_lines = []
-    atom_lj_dic = {}
+    atom_dic = {}
     for l in a.readlines():
         all_lines.append(l)
     for el_no, el in enumerate(all_lines):
         if el[2:6] == "name":
             initial_LJ = all_lines[el_no + 3].split()[1:]
             final_LJ = all_lines[el_no + 4].split()[1:]
-            atom_lj_dic[el.split()[1]] = [initial_LJ, final_LJ]
-    return atom_lj_dic
+            atom_name = el.split()[1]
+            atom_start_type = all_lines[el_no + 1].split()[1]
+            atom_end_type = all_lines[el_no + 2].split()[1]
+            atom_start_charge = float(all_lines[el_no + 5].split()[1])
+            atom_end_charge = float(all_lines[el_no + 6].split()[1])
+            atom_dic[el.split()[1]] = [initial_LJ, final_LJ, atom_name, atom_start_type, atom_end_type,
+                                       atom_start_charge, atom_end_charge]
+    return atom_dic
 
 
 def decharge_file(input_file, output_file, vdw_file):
@@ -50,19 +56,26 @@ def decharge_file(input_file, output_file, vdw_file):
         all_lines.append(l)
     for el_no, el in enumerate(all_lines):
         if el[2:14] == "final_charge":
-            initial_charge = float(all_lines[el_no - 1].split()[1])
-            original_final_charge = float(all_lines[el_no].split()[1])
-            final_charge = round(np.average(initial_charge, original_final_charge), 5)
-            all_lines[el_no] = "\t\tfinal_charge{0:11f}\n".format(final_charge)
+            if all_lines[el_no - 6].split()[1][:2] != "DU":
+                initial_charge = float(all_lines[el_no - 1].split()[1])
+                original_final_charge = float(all_lines[el_no].split()[1])
+                final_charge = round(np.average([initial_charge, original_final_charge]), 5)
+                all_lines[el_no] = "\t\tfinal_charge{0:11.5f}\n".format(final_charge)
+            elif all_lines[el_no - 6].split()[1][:2] == "DU":
+                all_lines[el_no - 1] = "\t\tinitial_charge  0.00000\n"
+                all_lines[el_no] = "\t\tfinal_charge    0.00000\n"
             atom_name = all_lines[el_no - 6].split()[-1]
-            lj = all_lj_dic[atom_name]
+            lj = all_lj_dic[atom_name][:2]
+            atom_start_type = all_lj_dic[atom_name][3]
             all_lines[el_no - 3] = "\t\tinitial_LJ      " + lj[0][0] + '  ' + lj[0][1] + '\n'
             all_lines[el_no - 2] = "\t\tfinal_LJ        " + lj[0][0] + '  ' + lj[0][1] + '\n'
+            all_lines[el_no - 4] = "\t\tfinal_type      " + atom_start_type + "\n"
+            all_lines[el_no - 5] = "\t\tinitial_type    " + atom_start_type + "\n"
     for el in all_lines:
         out_f.write(el)
 
 
-def recharge_file(input_file, output_file):
+def recharge_file(input_file, output_file, vdw_file):
     """
     :param input_file: input file for the charge to generate decharge
     :return: the de charged file
@@ -70,35 +83,51 @@ def recharge_file(input_file, output_file):
     a = open(input_file, 'r')
     out_f = open(output_file, "w")
     all_lines = []
+    all_lj_dic = vdw_name_LJ(vdw_file)
     for l in a.readlines():
         all_lines.append(l)
     for el_no, el in enumerate(all_lines):
         if el[2:16] == "initial_charge":
-            final_charge = float(all_lines[el_no + 1].split()[1])
-            original_initial_charge = float(all_lines[el_no].split()[1])
-            initial_charge = round(np.average(original_initial_charge, final_charge), 5)
-            el = "\t\tinitial_charge{0:9f}\n".format(initial_charge)
+            if all_lines[el_no - 5].split()[1][:2] != "DU":
+                final_charge = float(all_lines[el_no + 1].split()[1])
+                original_initial_charge = float(all_lines[el_no].split()[1])
+                initial_charge = round(np.average([original_initial_charge, final_charge]), 5)
+                el = "\t\tinitial_charge{0:9.5f}\n".format(initial_charge)
+            elif all_lines[el_no - 5].split()[1][:2] == "DU":
+                all_lines[el_no] = "\t\tinitial_charge  0.00000\n"
+            atom_name = all_lines[el_no - 5].split()[-1]
+            atom_end_type = all_lj_dic[atom_name][4]
+            all_lines[el_no - 3] = "\t\tfinal_type      " + atom_end_type + "\n"
+            all_lines[el_no - 4] = "\t\tinitial_type    " + atom_end_type + "\n"
             all_lines[el_no] = el
     for el in all_lines:
         out_f.write(el)
 
 
-def pert_vdw_file(input_file, output_file):
+def pert_vdw_file(vdw_file, output_file, charge_file):
     """
     :param input_file: input file for the charge to generate decharge
     :return: the de charged file
     """
-    a = open(input_file, 'r')
-    out_f = open(output_file, "w")
+    a = open(vdw_file, 'r')
+    output_f = open(output_file, 'w')
+    all_lines = []
+    charge_file_dic = vdw_name_LJ(charge_file)
     for l in a.readlines():
-        if l[2:16] == "initial_charge":
-            l = "\t\tinitial_charge  0.00000\n"
-            out_f.write(l)
-        elif l[2:14] == "final_charge":
-            l = "\t\tfinal_charge    0.00000\n"
-            out_f.write(l)
-        else:
-            out_f.write(l)
+        all_lines.append(l)
+    for el_no, el in enumerate(all_lines):
+        if el[2:6] == "name":
+            if el.split()[1][:2] != "DU":
+                atom_name = el.split()[1]
+                print (charge_file_dic[atom_name][-2:])
+                charge = round(np.average(charge_file_dic[atom_name][-2:]), 5)
+                all_lines[el_no + 5] = "\t\tinitial_charge{0:9.5f}\n".format(charge)
+                all_lines[el_no + 6] = "\t\tfinal_charge{0:11.5f}\n".format(charge)
+            elif el.split()[1][:2] == "DU":
+                all_lines[el_no + 5] = "\t\tinitial_charge  0.00000\n"
+                all_lines[el_no + 6] = "\t\tfinal_charge    0.00000\n"
+    for el in all_lines:
+        output_f.write(el)
 
 
 def solvated_decharge(each_pert_abs, script_folder, charge_state, each_pert_output_run):
@@ -185,7 +214,8 @@ def solvated_vdw(each_pert_abs, script_folder, charge_state, each_pert_output_ru
     else:
         vdw_file_input = each_pert_abs + "/MORPH.vdw.pert"
         vdw_file_output = "free/input/MORPH.pert"
-        pert_vdw_file(vdw_file_input, vdw_file_output)
+        charge_file_input = each_pert_abs + "/MORPH.charge.pert"
+        pert_vdw_file(vdw_file_input, vdw_file_output, charge_file_input)
     os.chdir("../../../")
 
 
@@ -213,7 +243,8 @@ def complex_vdw(each_pert_abs, script_folder, charge_state, each_pert_output_run
     else:
         vdw_file_input = each_pert_abs + "/MORPH.vdw.pert"
         vdw_file_output = "bound/input/MORPH.pert"
-        pert_vdw_file(vdw_file_input, vdw_file_output)
+        charge_file_input = each_pert_abs + "/MORPH.charge.pert"
+        pert_vdw_file(vdw_file_input, vdw_file_output, charge_file_input)
     os.chdir("../../../")
 
 
@@ -242,7 +273,8 @@ def solvated_recharge(each_pert_abs, script_folder, charge_state, each_pert_outp
     else:
         charge_file_input = each_pert_abs + "/MORPH.charge.pert"
         recharge_file_output = "free/input/MORPH.pert"
-        recharge_file(charge_file_input, recharge_file_output)
+        vdw_file_input = each_pert_abs + "/MORPH.vdw.pert"
+        recharge_file(charge_file_input, recharge_file_output,vdw_file_input)
     os.chdir("../../../")
 
 
@@ -270,7 +302,8 @@ def complex_recharge(each_pert_abs, script_folder, charge_state, each_pert_outpu
     else:
         charge_file_input = each_pert_abs + "/MORPH.charge.pert"
         recharge_file_output = "bound/input/MORPH.pert"
-        recharge_file(charge_file_input, recharge_file_output)
+        vdw_file_input = each_pert_abs + "/MORPH.vdw.pert"
+        recharge_file(charge_file_input, recharge_file_output,vdw_file_input)
     os.chdir("../../../")
 
 

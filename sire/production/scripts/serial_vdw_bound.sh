@@ -13,31 +13,50 @@ echo "lambda is: " $lam
 
 mkdir lambda-$lam
 cd lambda-$lam
-if [[ $lam == 0.0 ]]
-    then
-    cp ../../../../run000/bound/output/lambda-1.0/sim_restart.s3 .
-    #somd-freenrg -C ../../input/sim_min.cfg -l $lam -p CUDA
-    #rm -rf *.dat
-    #somd-freenrg -C ../../input/sim_nvt_1.cfg -l $lam -p CUDA
-    #rm -rf *.dat
-    #somd-freenrg -C ../../input/sim_nvt_2.cfg -l $lam -p CUDA
-    #rm -rf *.dat
-    #somd-freenrg -C ../../input/sim_nvt_3.cfg -l $lam -p CUDA
-    #rm -rf *.dat
-    #somd-freenrg -C ../../input/sim_nvt_4.cfg -l $lam -p CUDA
-    #rm -rf *.dat
-    #somd-freenrg -C ../../input/sim_nvt_5.cfg -l $lam -p CUDA
-    #rm -rf *.dat
-    #somd-freenrg -C ../../input/sim_npt_1.cfg -l $lam -p CUDA
-    #rm -rf *.dat
+somd-freenrg -C ../../input/sim_min.cfg -l $lam -p CUDA
+rm -rf *.dat
+somd-freenrg -C ../../input/sim_nvt_1.cfg -l $lam -p CUDA
+rm -rf *.dat
+somd-freenrg -C ../../input/sim_nvt_2.cfg -l $lam -p CUDA
+rm -rf *.dat
+somd-freenrg -C ../../input/sim_nvt_3.cfg -l $lam -p CUDA
+rm -rf *.dat
+somd-freenrg -C ../../input/sim_nvt_4.cfg -l $lam -p CUDA
+rm -rf *.dat
+somd-freenrg -C ../../input/sim_nvt_5.cfg -l $lam -p CUDA
+rm -rf *.dat
+somd-freenrg -C ../../input/sim_npt_1.cfg -l $lam -p CUDA
+rm -rf *.dat
+somd-freenrg -C ../../input/sim_npt_2.cfg -l $lam -p CUDA
+rm -rf *dat
+somd-freenrg -C ../../input/sim_md.cfg -l $lam -p CUDA
+
+#cd lambda-$lam
+#if [[ $lam == 0.0 ]]
+#    then
+#    cp ../../../../run000/bound/output/lambda-1.0/sim_restart.s3 .
+#    #somd-freenrg -C ../../input/sim_min.cfg -l $lam -p CUDA
+#    #rm -rf *.dat
+#    #somd-freenrg -C ../../input/sim_nvt_1.cfg -l $lam -p CUDA
+#    #rm -rf *.dat
+#    #somd-freenrg -C ../../input/sim_nvt_2.cfg -l $lam -p CUDA
+#    #rm -rf *.dat
+#    #somd-freenrg -C ../../input/sim_nvt_3.cfg -l $lam -p CUDA
+#    #rm -rf *.dat
+#    #somd-freenrg -C ../../input/sim_nvt_4.cfg -l $lam -p CUDA
+#    #rm -rf *.dat
+#    #somd-freenrg -C ../../input/sim_nvt_5.cfg -l $lam -p CUDA
+#    #rm -rf *.dat
+#    #somd-freenrg -C ../../input/sim_npt_1.cfg -l $lam -p CUDA
+#    #rm -rf *.dat
     #somd-freenrg -C ../../input/sim_npt_2.cfg -l $lam -p CUDA
     #rm -rf *dat
-    somd-freenrg -C ../../input/sim_md.cfg -l $lam -p CUDA
-else
-    last_lam = $(awk "BEGIN {print $lam - 0.1}")
-    cp ../lambda-$last_lam/sim_restart.s3 .
-    somd-freenrg -C ../../input/sim_md.cfg -l $lam -p CUDA
-fi
+#    somd-freenrg -C ../../input/sim_md.cfg -l $lam -p CUDA
+#else
+#    last_lam = $(awk "BEGIN {print $lam - 0.1}")
+#    cp ../lambda-$last_lam/sim_restart.s3 .
+#    somd-freenrg -C ../../input/sim_md.cfg -l $lam -p CUDA
+#fi
 cd ..
 
 done
