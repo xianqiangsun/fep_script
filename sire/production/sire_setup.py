@@ -9,6 +9,9 @@ parser = argparse.ArgumentParser(description="Main script for setup the simulati
 parser.add_argument('-i', dest='input_folder', default='_perturb', help="the input file for the sire folder")
 parser.add_argument('-s', dest='script_folder', default="script", help="the input script file for the sire folder")
 parser.add_argument('-o', dest='output_folder', default='sire')
+parser.add_argument('-d', dest='device', default="0,1", help="the available device number for the simulations")
+
+
 args = parser.parse_args()
 
 
@@ -50,7 +53,6 @@ def decharge_file(input_file, output_file, vdw_file):
     """
     all_lj_dic = vdw_name_LJ(vdw_file)
     a = open(input_file, 'r')
-    out_f = open(output_file, "w")
     all_lines = []
     for l in a.readlines():
         all_lines.append(l)
@@ -71,8 +73,7 @@ def decharge_file(input_file, output_file, vdw_file):
             all_lines[el_no - 2] = "\t\tfinal_LJ        " + lj[0][0] + '  ' + lj[0][1] + '\n'
             all_lines[el_no - 4] = "\t\tfinal_type      " + atom_start_type + "\n"
             all_lines[el_no - 5] = "\t\tinitial_type    " + atom_start_type + "\n"
-    for el in all_lines:
-        out_f.write(el)
+    write_list_file(all_lines,output_file)
 
 
 def recharge_file(input_file, output_file, vdw_file):
@@ -81,7 +82,6 @@ def recharge_file(input_file, output_file, vdw_file):
     :return: the de charged file
     """
     a = open(input_file, 'r')
-    out_f = open(output_file, "w")
     all_lines = []
     all_lj_dic = vdw_name_LJ(vdw_file)
     for l in a.readlines():
@@ -100,8 +100,51 @@ def recharge_file(input_file, output_file, vdw_file):
             all_lines[el_no - 3] = "\t\tfinal_type      " + atom_end_type + "\n"
             all_lines[el_no - 4] = "\t\tinitial_type    " + atom_end_type + "\n"
             all_lines[el_no] = el
+    write_list_file(all_lines,output_file)
+
+
+def combine_decharge_recharge(decharge_file,vdw_file, recharge_file):
+    vdw = open(vdw_file, 'r')
+    recharge = open(recharge_file, "r")
+    decharge = open(decharge_file,'r')
+    vdw_dic = vdw_name_LJ(vdw_file)
+    decharge_dic = vdw_name_LJ(decharge_file)
+    recharge_dic = vdw_name_LJ(recharge_file)
+    vdw_list = []
+    recharge_list = []
+    decharge_list = []
+    for el in vdw.readlines():
+        vdw_list.append(el)
+    for el in recharge.readlines():
+        recharge_list.append(el)
+    for el in decharge.readlines():
+        decharge_list.append(el)
+    middle_charge_dic = {}
+    for el_no,el in enumerate(decharge_list):
+        if el.split()[1][:2] != "DU":
+            atom_name = el.split()[1]
+            start_charge = decharge_dic[atom_name][6]
+            final_charge = recharge_dic[atom_name][6]
+            middle_charge= round(np.average([start_charge,final_charge]), 5)
+            middle_charge_dic[atom_name]=middle_charge
+            decharge_list[el_no+6] = "\t\tfinal_charge{0:11.5f}\n".format(middle_charge)
+    for el_no,el in enumerate(recharge_list):
+        if el.split()[1][:2] != "DU":
+            atom_name = el.split()[1]
+            recharge_list[el_no+5] = "\t\tinitial_charge{0:9.5f}\n".format(middle_charge_dic[atom_name])
+    for el_no,el in enumerate(recharge_list):
+        if el.split()[1][:2] != "DU":
+            atom_name = el.split()[1]
+            vdw_list[el_no+5] = "\t\tinitial_charge{0:9.5f}\n".format(middle_charge_dic[atom_name])
+            vdw_list[el_no+5] = "\t\tfinal_charge{0:11.5f}\n".format(middle_charge_dic[atom_name])
+    return decharge_list,vdw_list,recharge_list
+
+
+def write_list_file(all_lines,output_file):
+    output_f = open(output_file, 'w')
     for el in all_lines:
-        out_f.write(el)
+        output_f.write(el)
+    output_f.close()
 
 
 def pert_vdw_file(vdw_file, output_file, charge_file):
@@ -110,7 +153,6 @@ def pert_vdw_file(vdw_file, output_file, charge_file):
     :return: the de charged file
     """
     a = open(vdw_file, 'r')
-    output_f = open(output_file, 'w')
     all_lines = []
     charge_file_dic = vdw_name_LJ(charge_file)
     for l in a.readlines():
@@ -126,8 +168,7 @@ def pert_vdw_file(vdw_file, output_file, charge_file):
             elif el.split()[1][:2] == "DU":
                 all_lines[el_no + 5] = "\t\tinitial_charge  0.00000\n"
                 all_lines[el_no + 6] = "\t\tfinal_charge    0.00000\n"
-    for el in all_lines:
-        output_f.write(el)
+    write_list_file(all_lines,output_file)
 
 
 def solvated_decharge(each_pert_abs, script_folder, charge_state, each_pert_output_run):
@@ -150,8 +191,13 @@ def solvated_decharge(each_pert_abs, script_folder, charge_state, each_pert_outp
     for cmd in cmds:
         os.system(cmd)
     if charge_state:
-        cmd = "cp %s/MORPH.decharge.pert free/input/MORPH.pert" % each_pert_abs
-        os.system(cmd)
+        #cmd = "cp %s/MORPH.decharge.pert free/input/MORPH.pert" % each_pert_abs
+        #os.system(cmd)
+        decharge_file_input = each_pert_abs+"/MORPH.decharge.pert"
+        recharge_file_input = each_pert_abs+"/MORPH.recharge.pert"
+        vdw_file_input = each_pert_abs+"/MORPH.vdw.pert"
+        decharge_list,vdw_list,recharge_list=combine_decharge_recharge(decharge_file_input,vdw_file_input,recharge_file_input )
+        write_list_file(decharge_list,"free/input/MORPH.pert")
     else:
         charge_file_input = each_pert_abs + "/MORPH.charge.pert"
         vdw_file_input = each_pert_abs + "/MORPH.vdw.pert"
@@ -179,8 +225,13 @@ def complex_decharge(each_pert_abs, script_folder, charge_state, each_pert_outpu
     for cmd in cmds:
         os.system(cmd)
     if charge_state:
-        cmd = "cp %s/MORPH.decharge.pert bound/input/MORPH.pert" % each_pert_abs
-        os.system(cmd)
+        decharge_file_input = each_pert_abs+"/MORPH.decharge.pert"
+        recharge_file_input = each_pert_abs+"/MORPH.recharge.pert"
+        vdw_file_input = each_pert_abs+"/MORPH.vdw.pert"
+        decharge_list,vdw_list,recharge_list=combine_decharge_recharge(decharge_file_input,vdw_file_input,recharge_file_input )
+        write_list_file(decharge_list,"bound/input/MORPH.pert")
+        #cmd = "cp %s/MORPH.decharge.pert bound/input/MORPH.pert" % each_pert_abs
+        #os.system(cmd)
     else:
         charge_file_input = each_pert_abs + "/MORPH.charge.pert"
         vdw_file_input = each_pert_abs + "/MORPH.vdw.pert"
@@ -209,8 +260,13 @@ def solvated_vdw(each_pert_abs, script_folder, charge_state, each_pert_output_ru
     for cmd in cmds:
         os.system(cmd)
     if charge_state:
-        cmd = "cp %s/MORPH.vdw.pert free/input/MORPH.pert" % each_pert_abs
-        os.system(cmd)
+        decharge_file_input = each_pert_abs+"/MORPH.decharge.pert"
+        recharge_file_input = each_pert_abs+"/MORPH.recharge.pert"
+        vdw_file_input = each_pert_abs+"/MORPH.vdw.pert"
+        decharge_list,vdw_list,recharge_list=combine_decharge_recharge(decharge_file_input,vdw_file_input,recharge_file_input )
+        write_list_file(vdw_list,"free/input/MORPH.pert")
+        #cmd = "cp %s/MORPH.vdw.pert free/input/MORPH.pert" % each_pert_abs
+        #os.system(cmd)
     else:
         vdw_file_input = each_pert_abs + "/MORPH.vdw.pert"
         vdw_file_output = "free/input/MORPH.pert"
@@ -238,8 +294,13 @@ def complex_vdw(each_pert_abs, script_folder, charge_state, each_pert_output_run
     for cmd in cmds:
         os.system(cmd)
     if charge_state:
-        cmd = "cp %s/MORPH.vdw.pert bound/input/MORPH.pert" % each_pert_abs
-        os.system(cmd)
+        #cmd = "cp %s/MORPH.vdw.pert bound/input/MORPH.pert" % each_pert_abs
+        #os.system(cmd)
+        decharge_file_input = each_pert_abs+"/MORPH.decharge.pert"
+        recharge_file_input = each_pert_abs+"/MORPH.recharge.pert"
+        vdw_file_input = each_pert_abs+"/MORPH.vdw.pert"
+        decharge_list,vdw_list,recharge_list=combine_decharge_recharge(decharge_file_input,vdw_file_input,recharge_file_input )
+        write_list_file(vdw_list,"bound/input/MORPH.pert")
     else:
         vdw_file_input = each_pert_abs + "/MORPH.vdw.pert"
         vdw_file_output = "bound/input/MORPH.pert"
@@ -268,8 +329,13 @@ def solvated_recharge(each_pert_abs, script_folder, charge_state, each_pert_outp
     for cmd in cmds:
         os.system(cmd)
     if charge_state:
-        cmd = "cp %s/MORPH.recharge.pert free/input/MORPH.pert" % each_pert_abs
-        os.system(cmd)
+        #cmd = "cp %s/MORPH.recharge.pert free/input/MORPH.pert" % each_pert_abs
+        #os.system(cmd)
+        decharge_file_input = each_pert_abs+"/MORPH.decharge.pert"
+        recharge_file_input = each_pert_abs+"/MORPH.recharge.pert"
+        vdw_file_input = each_pert_abs+"/MORPH.vdw.pert"
+        decharge_list,vdw_list,recharge_list=combine_decharge_recharge(decharge_file_input,vdw_file_input,recharge_file_input )
+        write_list_file(recharge_list,"free/input/MORPH.pert")
     else:
         charge_file_input = each_pert_abs + "/MORPH.charge.pert"
         recharge_file_output = "free/input/MORPH.pert"
@@ -297,8 +363,13 @@ def complex_recharge(each_pert_abs, script_folder, charge_state, each_pert_outpu
     for cmd in cmds:
         os.system(cmd)
     if charge_state:
-        cmd = "cp %s/MORPH.recharge.pert bound/input/MORPH.pert" % each_pert_abs
-        os.system(cmd)
+        decharge_file_input = each_pert_abs+"/MORPH.decharge.pert"
+        recharge_file_input = each_pert_abs+"/MORPH.recharge.pert"
+        vdw_file_input = each_pert_abs+"/MORPH.vdw.pert"
+        decharge_list,vdw_list,recharge_list=combine_decharge_recharge(decharge_file_input,vdw_file_input,recharge_file_input )
+        write_list_file(recharge_list,"bound/input/MORPH.pert")
+        #cmd = "cp %s/MORPH.recharge.pert bound/input/MORPH.pert" % each_pert_abs
+        #os.system(cmd)
     else:
         charge_file_input = each_pert_abs + "/MORPH.charge.pert"
         recharge_file_output = "bound/input/MORPH.pert"
@@ -338,6 +409,7 @@ if __name__ == "__main__":
     input_folder = args.input_folder
     script_folder = os.path.abspath(args.script_folder)
     output_folder = args.output_folder
+    device = args.device.split(',')
     make_directory(output_folder)
     all_pert_folder = os.listdir(input_folder)
     for each_pert in all_pert_folder:
