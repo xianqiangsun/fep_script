@@ -1,0 +1,39 @@
+FE_type = gromacs
+AFE.separate_vdw_elec = True
+
+[globals]
+forcefield = amber, ff14SB, tip3p
+gaff = gaff2
+logfile = dGmorph.log
+
+[ligand]
+basedir = ligands
+file.name = ligand.mol2
+box.type = rectangular
+
+morph_pairs = r > 1,
+	r > 2,
+	r > 3,
+	r > 4,
+	r > 5,
+	r > 6,
+	r > 8,
+	r > 9,
+	9 > r,
+	8 > r,
+	6 > r,
+	5 > r,
+	4 > r, 
+	3 > r,
+	2 > r,
+	1 > r 
+
+[protein]
+basedir = proteins
+molecules = HPK1
+propka = t
+
+[complex]
+# the following are required to create the morph in solution
+box.type = rectangular
+

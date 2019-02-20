@@ -1,0 +1,41 @@
+logfile = hpk1.log
+forcefield = amber, ff14SB, tip3p, hfe
+gaff = gaff2
+AFE.type = gromacs
+AFE.separate_vdw_elec = True
+mdengine = amber, /mnt/hgst/leos_hgst/program/opt/amber18/bin/pmemd.cuda
+
+
+[ligand]
+basedir = ligands
+file.name = ligand.mol2
+box.type = rectangular
+box.length = 12.0
+neutralize = False 
+min.nsteps = 1000
+molecules = 1, 2, 3, 4, 5, 6, 8, 9, r
+
+min.nsteps = 200
+min.ncyc = 100
+min.restr_force = 10.0
+min.restraint = notsolvent
+
+[protein]
+basedir = proteins
+molecules = HPK1
+propka = t
+
+[complex]
+# explicit enumeration of pairs, otherwise all-with-all creation
+pairs = HPK1 : r, HPK1 : 1, HPK1 : 2, HPK1 : 3, HPK1 : 4, HPK1 : 5, HPK1 : 6,  HPK1 : 8, HPK1 : 9
+
+box.type = rectangular
+box.length = 12.0
+align_axes = True
+neutralize = True
+
+min.nsteps = 2000
+min.ncyc   = 1000
+min.restr_force = 10.0
+min.restraint = :UNK
+
