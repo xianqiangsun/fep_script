@@ -16,21 +16,21 @@ cd lambda-$lam
 mkdir lambda-$lam
 cd lambda-$lam
 somd-freenrg -C ../../input/sim_min.cfg -l $lam -p CUDA
-rm -rf *.dat
+#rm -rf *.dat
 somd-freenrg -C ../../input/sim_nvt_1.cfg -l $lam -p CUDA
-rm -rf *.dat
+#rm -rf *.dat
 somd-freenrg -C ../../input/sim_nvt_2.cfg -l $lam -p CUDA
-rm -rf *.dat
+#rm -rf *.dat
 somd-freenrg -C ../../input/sim_nvt_3.cfg -l $lam -p CUDA
-rm -rf *.dat
+#rm -rf *.dat
 somd-freenrg -C ../../input/sim_nvt_4.cfg -l $lam -p CUDA
-rm -rf *.dat
+#rm -rf *.dat
 somd-freenrg -C ../../input/sim_nvt_5.cfg -l $lam -p CUDA
-rm -rf *.dat
+#rm -rf *.dat
 somd-freenrg -C ../../input/sim_npt_1.cfg -l $lam -p CUDA
-rm -rf *.dat
+#rm -rf *.dat
 somd-freenrg -C ../../input/sim_npt_2.cfg -l $lam -p CUDA
-rm -rf *dat
+#rm -rf *dat
 somd-freenrg -C ../../input/sim_md.cfg -l $lam -p CUDA
 cd lambda-$lam
 #if [[ $lam == 0.0 ]]
