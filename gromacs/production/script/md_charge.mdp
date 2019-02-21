@@ -47,11 +47,11 @@ ref_p                    = 1.0
 free_energy              = yes
 init_lambda_state        = 0
 delta_lambda             = 0
-calc_lambda_neighbors    = 1        ; only immediate neighboring windows
+calc_lambda_neighbors    = -1        ; only immediate neighboring windows
 couple-moltype           = LIG  ; name of moleculetype to decouple
-#couple-lambda0           = vdw      ; only van der Waals interactions
-#couple-lambda1           = none     ; turn off everything, in this case only vdW
-couple-intramol          = no
+couple-lambda0           = vdw-q      ; only van der Waals interactions
+couple-lambda1           = vdw-q     ; turn off everything, in this case only vdW
+couple-intramol          = yes
 ; Vectors of lambda specified here
 ; Each combination is an index that is retrieved from init_lambda_state for each simulation
 ; init_lambda_state        0    1    2    3    4    5    6    7    8    9    10
@@ -81,3 +81,5 @@ constraint-algorithm     = lincs
 continuation             = yes
 ; Highest order in the expansion of the constraint coupling matrix
 lincs-order              = 12
+; We remove center of mass motion.  In periodic boundary conditions, the center of mass motion is spurious; the periodic system is the same in all translational directions.
+comm-mode                = Linear
