@@ -88,14 +88,14 @@ if __name__ == "__main__":
     device = args.device.split(',')
     make_directory(output_folder)
     all_pert_folder = os.listdir(input_folder)
-    em_vdw = read_file(script_folder+'/em_vdw.mdp')
-    em_charge = read_file(script_folder+'/em_charge.mdp')
-    nvt_vdw = read_file(script_folder+'/nvt_vdw.mdp')
-    nvt_charge = read_file(script_folder+'/nvt_charge.mdp')
-    npt_vdw = read_file(script_folder+'/npt_vdw.mdp')
-    npt_charge = read_file(script_folder+'/npt_charge.mdp')
-    md_vdw = read_file(script_folder+'/md_vdw.mdp')
-    md_charge = read_file(script_folder+'/md_charge.mdp')
+    em_vdw = read_file(script_folder + '/em_vdw.mdp')
+    em_charge = read_file(script_folder + '/em_charge.mdp')
+    nvt_vdw = read_file(script_folder + '/nvt_vdw.mdp')
+    nvt_charge = read_file(script_folder + '/nvt_charge.mdp')
+    npt_vdw = read_file(script_folder + '/npt_vdw.mdp')
+    npt_charge = read_file(script_folder + '/npt_charge.mdp')
+    md_vdw = read_file(script_folder + '/md_vdw.mdp')
+    md_charge = read_file(script_folder + '/md_charge.mdp')
 
     for each_pert in all_pert_folder:
         each_pert_abs = os.path.abspath(input_folder) + "/" + each_pert
@@ -103,21 +103,21 @@ if __name__ == "__main__":
         make_directory(each_pert_out)
         pert_state = check_pert_state(each_pert_abs)
         if pert_state:
-            for run_no in range(3):
+            for run_no in range(2):
                 each_pert_output_run = make_run_folder(each_pert_out, run_no)
-                if run_no ==0:
-                    pass
-                elif run_no==1:
-                    pass
-                else:
+                if run_no == 0:
+                    cmds = ["cp "+each_pert_abs+''
+
+                    ]
+                    #decharge the system and vdw change md_charge_vdw.mdp
+
+                elif run_no == 1:
+                    #recharge of the system md_charge.mdp
                     pass
 
         else:
-            for run_no in range(2):
+            for run_no in range(1):
                 each_pert_output_run = make_run_folder(each_pert_out, run_no)
-                if run_no ==0:
+                if run_no == 0:
+                    #decharge the system md_vdw_charge.mdp
                     pass
-                else:
-                    pass
-
-
