@@ -80,6 +80,19 @@ def make_run_folder(each_pert_out, run_no):
     make_directory(each_pert_out_run_bound_output)
     return each_pert_out_run
 
+def check_lambda_length(mdp_list):
+    for each_line in mdp_list:
+        if each_line[:11]=="fep_lambdas":
+            lambdas = each_line[11:].split()[1:]
+            lambdas_nos = len(lambdas)
+    return lambdas_nos
+
+def change_lambda_state(mdp_list,lambda_no):
+    for el_no,each_line in enumerate(mdp_list):
+        if each_line[:17]=="init-lambda-state":
+            mdp_list[el_no] = "init-lambda-state    ="+str(lambda_no)+'\n'
+    return mdp_list
+
 
 if __name__ == "__main__":
     input_folder = args.input_folder
@@ -90,12 +103,20 @@ if __name__ == "__main__":
     all_pert_folder = os.listdir(input_folder)
     em_vdw = read_file(script_folder + '/em_vdw.mdp')
     em_charge = read_file(script_folder + '/em_charge.mdp')
+    em_charge_vdw = read_file(script_folder + '/em_charge_vdw.mdp')
+    em_vdw_charge = read_file(script_folder + '/em_vdw_charge.mdp')
     nvt_vdw = read_file(script_folder + '/nvt_vdw.mdp')
     nvt_charge = read_file(script_folder + '/nvt_charge.mdp')
+    nvt_vdw_charge = read_file(script_folder + '/nvt_vdw_charge.mdp')
+    nvt_charge_vdw = read_file(script_folder + '/nvt_charge_vdw.mdp')
     npt_vdw = read_file(script_folder + '/npt_vdw.mdp')
     npt_charge = read_file(script_folder + '/npt_charge.mdp')
+    npt_vdw_charge = read_file(script_folder + '/npt_vdw_charge.mdp')
+    npt_charge_vdw = read_file(script_folder + '/npt_charge_vdw.mdp')
     md_vdw = read_file(script_folder + '/md_vdw.mdp')
     md_charge = read_file(script_folder + '/md_charge.mdp')
+    md_vdw_charge = read_file(script_folder + '/md_vdw_charge.mdp')
+    md_charge_vdw = read_file(script_folder + '/md_charge_vdw.mdp')
 
     for each_pert in all_pert_folder:
         each_pert_abs = os.path.abspath(input_folder) + "/" + each_pert
@@ -106,8 +127,14 @@ if __name__ == "__main__":
             for run_no in range(2):
                 each_pert_output_run = make_run_folder(each_pert_out, run_no)
                 if run_no == 0:
-                    cmds = ["cp "+each_pert_abs+''
+                    lambda_nos = check_lambda_length(em_charge_vdw)
+                    for lambda_no in range(lambda_nos):
+                        em_charge_vdw_lambda = change_lambda_state(em_charge_vdw, lambda_no)
+                        nvt_charge_vdw_lambda = change_lambda_state(nvt_charge_vdw, lambda_no)
+                        npt_charge_vdw_lambda = change_lambda_state(npt_charge_vdw, lambda_no)
+                        md_charge_vdw_lambda = change_lambda_state(md_charge_vdw, lambda_no)
 
+                    cmds = ["cp "+each_pert_abs+''
                     ]
                     #decharge the system and vdw change md_charge_vdw.mdp
 
