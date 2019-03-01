@@ -1,4 +1,5 @@
 FE_type = gromacs
+# pmemd, sander, GROMACS, Sire
 AFE.separate_vdw_elec = True
 
 [globals]

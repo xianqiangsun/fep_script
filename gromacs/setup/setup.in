@@ -2,6 +2,7 @@ logfile = hpk1.log
 forcefield = amber, ff14SB, tip3p, hfe
 gaff = gaff2
 AFE.type = gromacs
+# pmemd, sander, GROMACS, Sire
 AFE.separate_vdw_elec = True
 mdengine = amber, /mnt/hgst/leos_hgst/program/opt/amber18/bin/pmemd.cuda
 
