@@ -169,8 +169,9 @@ def obtain_ifce_line(original_input, lambda_no):
     for el in original_input:
         if el[:5] == " icfe":
             ifce_line = el.replace("clambda = %L%", "clambda = " + str(lambda_no))
-
-    return ifce_line(original_input)
+            print ("the ifce line at: ",lambda_no," is")
+            print (el)
+    return ifce_line
 
 
 def obtain_mask_line(original_input):
@@ -185,6 +186,8 @@ def obtain_mask_line(original_input):
             mask_line = mask_line + " " + el
         elif el[:8] == " crgmask":
             mask_line = mask_line + " " + el
+    print ("the mask line is:")
+    print (mask_line)
     return mask_line
 
 
@@ -193,6 +196,8 @@ def obtain_ifmbar(lambdas, lambda_list):
     mbar_line = "ifmbar = 1, bar_intervall = 500, mbar_states = " + str(state_number) + "\n"
     mbar_lambda = lambdas + '\n'
     mbar = mbar_line + mbar_lambda
+    print ("the mbar line is:")
+    print ("mbar")
     return mbar
 
 
@@ -212,14 +217,23 @@ if __name__ == "__main__":
         make_directory(each_pert_out_run_complex)
         make_directory(each_pert_out_run_solvated)
         states = check_pert_state(each_pert_abs)
+        #make the vdw input
         each_pert_out_run_complex_vdw = each_pert_out_run_complex + "/vdw"
-        each_pert_out_run_complex_solvated = each_pert_out_run_solvated + "/vdw"
-        
-        original_vdw_in = read_file(each_pert_abs + '/vdw.in')
+        each_pert_out_run_solvated_vdw = each_pert_out_run_solvated + "/vdw"
+        make_directory(each_pert_out_run_complex_vdw)
+        original_vdw_in = read_file(each_pert_abs + 'complex/vdw.in')
+        mask_line = obtain_mask_line(original_vdw_in)
+        vdw_mbar = obtain_ifmbar(vdw_lambda, vdw_lambda_list)
+        for each_lambda in vdw_lambda_list:
+            ifce_line=obtain_ifce_line(original_vdw_in,each_lambda)
 
+
+        #make the decharge input
         if states["decharge"]:
             pass
+        #make the recharge input
         if states["recharge"]:
             pass
+        #make the charge input
         if states["charge"]:
             pass
