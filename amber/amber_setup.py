@@ -139,7 +139,7 @@ def write_file(all_lines, output_file):
 def check_pert_state(each_pert_abs):
     states = {'decharge': False,
               'recharge': False,
-              'charge': True}
+              'charge': False}
 
     decharge_file = each_pert_abs + "/decharge.in"
     recharge_file = each_pert_abs + "/recharge.in"
@@ -169,10 +169,10 @@ def obtain_ifce_line(original_input, lambda_no):
     ifce_line = '''
     '''
     for el in original_input:
-        if el[:5] == " icfe":
+        if el[:5] == "  icfe":
             ifce_line = el.replace("clambda = %L%", "clambda = " + str(lambda_no))
             print("the ifce line at: ", lambda_no, " is")
-            print(el)
+            print(ifce_line)
     return ifce_line
 
 
@@ -182,9 +182,9 @@ def obtain_mask_line(original_input):
     for el in original_input:
         if el[:8] == " timask1":
             mask_line = mask_line + el
-        elif el[:8] == "scmask1":
+        elif el[:7] == "scmask1":
             mask_line = mask_line + " " + el
-        elif el[:8] == "scmask2":
+        elif el[:7] == "scmask2":
             mask_line = mask_line + " " + el
         elif el[:8] == " crgmask":
             mask_line = mask_line + " " + el
@@ -195,15 +195,15 @@ def obtain_mask_line(original_input):
 
 def obtain_ifmbar(lambdas, lambda_list):
     state_number = len(lambda_list)
-    mbar_line = "ifmbar = 1, bar_intervall = 500, mbar_states = " + str(state_number) + "\n"
-    mbar_lambda = "mbar_lambda = " + lambdas + '\n'
+    mbar_line = "  ifmbar = 1, bar_intervall = 500, mbar_states = " + str(state_number) + "\n"
+    mbar_lambda = "  mbar_lambda = " + lambdas + '\n'
     mbar = mbar_line + mbar_lambda
     print("the mbar line is:")
-    print("mbar")
+    print(mbar)
     return mbar
 
 
-def prepare_folder_and_configuration(each_pert_abs, each_pert_out, folder_name, lambda_values):
+def prepare_folder_and_configuration(each_pert_out, each_pert_abs, folder_name, lambda_values):
     # make the vdw input folder
     each_pert_out_run_complex = each_pert_out + "/complex"
     each_pert_out_run_solvated = each_pert_out + "/solvated"
@@ -213,11 +213,14 @@ def prepare_folder_and_configuration(each_pert_abs, each_pert_out, folder_name, 
     make_directory(each_pert_out_run_solvated_vdw)
 
     # read the vdw simulation data
-    original_vdw_in = read_file(each_pert_abs + 'complex/' + folder_name + '.in')  # complex and solvated are the same
+    original_vdw_in = read_file(each_pert_abs + '/complex/' + folder_name + '.in')  # complex and solvated are the same
     mask_line = obtain_mask_line(original_vdw_in)
     lambda_list = lambda_values.split(",")
+
     vdw_mbar = obtain_ifmbar(lambda_values, lambda_list)
+
     for each_lambda in lambda_list:
+        each_lambda = each_lambda.strip()
         output_folder_complex = each_pert_out_run_complex_vdw + "/" + str(each_lambda)
         output_folder_solvated = each_pert_out_run_solvated_vdw + "/" + str(each_lambda)
         make_directory(output_folder_complex)
@@ -280,22 +283,24 @@ def copy_system(each_pert_out, each_pert_abs, folder_name, lambda_values):
     each_pert_out_run_solvated = each_pert_out + "/solvated"
     each_pert_out_run_complex_vdw = each_pert_out_run_complex + "/" + folder_name
     each_pert_out_run_solvated_vdw = each_pert_out_run_solvated + "/" + folder_name
-    original_file_complex = each_pert_abs + "/complex"
-    original_file_solvated = each_pert_out + "/solvated"
+    original_file_complex = each_pert_abs + "/complex/"
+    original_file_solvated = each_pert_abs + "/solvated/"
     for each_lambda in lambda_list:
-        cmds = ['cp ' + original_file_complex + '/' + folder_name + '.pdb ' + each_pert_out_run_complex_vdw + '/' + str(
+        each_lambda = each_lambda.strip()
+        cmds = ['cp ' + original_file_complex + folder_name + '.pdb ' + each_pert_out_run_complex_vdw + '/' + str(
             each_lambda),
-                'cp ' + original_file_complex + '/' + folder_name + '.parm7 ' + each_pert_out_run_complex_vdw + '/' + str(
+                'cp ' + original_file_complex + folder_name + '.parm7 ' + each_pert_out_run_complex_vdw + '/' + str(
                     each_lambda),
-                'cp ' + original_file_complex + '/' + folder_name + '.rst7 ' + each_pert_out_run_complex_vdw + '/' + str(
+                'cp ' + original_file_complex + folder_name + '.rst7 ' + each_pert_out_run_complex_vdw + '/' + str(
                     each_lambda),
-                'cp ' + original_file_solvated + '/' + folder_name + '.pdb ' + each_pert_out_run_solvated_vdw + '/' + str(
+                'cp ' + original_file_solvated + folder_name + '.pdb ' + each_pert_out_run_solvated_vdw + '/' + str(
                     each_lambda),
-                'cp ' + original_file_solvated + '/' + folder_name + '.parm7 ' + each_pert_out_run_solvated_vdw + '/' + str(
+                'cp ' + original_file_solvated + folder_name + '.parm7 ' + each_pert_out_run_solvated_vdw + '/' + str(
                     each_lambda),
-                'cp ' + original_file_solvated + '/' + folder_name + '.rst7 ' + each_pert_out_run_solvated_vdw + '/' + str(
+                'cp ' + original_file_solvated + folder_name + '.rst7 ' + each_pert_out_run_solvated_vdw + '/' + str(
                     each_lambda), ]
         for i in cmds:
+            print (i)
             os.system(i)
 
 
@@ -310,13 +315,14 @@ if __name__ == "__main__":
     for each_pert in all_pert_folder:
         each_pert_abs = os.path.abspath(input_folder) + "/" + each_pert
         each_pert_out = output_folder + "/" + each_pert
+        make_directory(each_pert_out)
         each_pert_out_run_complex = each_pert_out + "/complex"
         each_pert_out_run_solvated = each_pert_out + "/solvated"
         make_directory(each_pert_out_run_complex)
         make_directory(each_pert_out_run_solvated)
         states = check_pert_state(each_pert_abs)
 
-        prepare_folder_and_configuration(each_pert_abs, "vdw", vdw_lambda)
+        prepare_folder_and_configuration(each_pert_out, each_pert_abs, "vdw", vdw_lambda)
         copy_system(each_pert_out, each_pert_abs, "vdw", vdw_lambda)
         # make the recharge input
         if states["recharge"]:
@@ -324,7 +330,7 @@ if __name__ == "__main__":
             copy_system(each_pert_out, each_pert_abs, "recharge", charge_lambda)
         # make the charge input
         if states["charge"]:
-            prepare_folder_and_configuration(each_pert_out, each_pert_out, each_pert_abs, "charge", charge_lambda)
+            prepare_folder_and_configuration(each_pert_out, each_pert_abs, "charge", charge_lambda)
             copy_system(each_pert_out, each_pert_abs, "charge", charge_lambda)
         if states["decharge"]:
             prepare_folder_and_configuration(each_pert_out, each_pert_abs, "decharge", charge_lambda)
