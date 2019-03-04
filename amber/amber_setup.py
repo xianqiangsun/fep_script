@@ -1,6 +1,10 @@
 '''
 analysis:
 alchemical-analysis
+
+test folder:
+regor : /home/leos/work/hpk1/fep/fes_setup_amber
+catipiller:
 '''
 import os
 import sys
