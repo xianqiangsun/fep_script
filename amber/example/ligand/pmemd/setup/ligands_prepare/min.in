@@ -15,3 +15,9 @@ minimisation
  &ewald
  / 
 
+ti_in_vdw_solvated = open(each_pert_out_run_solvated_vdw_ti_in,'w')
+            ti_in_vdw_complex = open(each_pert_out_run_complex_vdw_ti_in,'w')
+            ti_in_vdw_solvated.writelines(ti_in_vdw)
+            ti_in_vdw_solvated.close()
+            ti_in_vdw_complex.writelines(ti_in_vdw)
+            ti_in_vdw_complex.close()
