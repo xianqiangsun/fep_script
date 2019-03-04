@@ -1,0 +1,50 @@
+            each_pert_out_run_complex_charge = each_pert_out_run_complex + "/charge"
+            each_pert_out_run_solvated_charge = each_pert_out_run_solvated + "/charge"
+            make_directory(each_pert_out_run_complex_charge)
+            make_directory(each_pert_out_run_solvated_charge)
+            each_pert_out_run_complex_charge_min_in = each_pert_out_run_complex + "/charge/min.in"
+            each_pert_out_run_solvated_charge_min_in = each_pert_out_run_solvated + "/charge/min.in"
+            each_pert_out_run_complex_charge_heat_in = each_pert_out_run_complex + "/charge/heat.in"
+            each_pert_out_run_solvated_charge_heat_in = each_pert_out_run_solvated + "/charge/heat.in"
+            each_pert_out_run_complex_charge_press_in = each_pert_out_run_complex + "/charge/press.in"
+            each_pert_out_run_solvated_charge_press_in = each_pert_out_run_solvated + "/charge/press.in"
+            each_pert_out_run_complex_charge_ti_in = each_pert_out_run_complex + "/charge/ti.in"
+            each_pert_out_run_solvated_charge_ti_in = each_pert_out_run_solvated + "/charge/ti.in"
+
+            # read the charge simulation data
+            original_charge_in = read_file(each_pert_abs + 'complex/charge.in') # complex and solvated are the same
+            mask_line = obtain_mask_line(original_charge_in)
+            charge_mbar = obtain_ifmbar(charge_lambda, charge_lambda_list)
+            for each_lambda in charge_lambda_list:
+                ifce_line = obtain_ifce_line(original_charge_in, each_lambda)
+                min_in_charge = min_in + ifce_line + charge_lambda +mask_line +end_text
+                min_in_charge_solvated = open(each_pert_out_run_solvated_charge_min_in,'w')
+                min_in_charge_complex = open(each_pert_out_run_complex_charge_min_in,'w')
+                min_in_charge_solvated.writelines(min_in_charge)
+                min_in_charge_solvated.close()
+                min_in_charge_complex.writelines(min_in_charge)
+                min_in_charge_complex.close()
+
+                heat_in_charge = heat_in_start + ifce_line + charge_lambda + mask_line + heat_in_end
+                heat_in_charge_solvated = open(each_pert_out_run_solvated_charge_heat_in,'w')
+                heat_in_charge_complex = open(each_pert_out_run_complex_charge_heat_in,'w')
+                heat_in_charge_solvated.writelines(heat_in_charge)
+                heat_in_charge_solvated.close()
+                heat_in_charge_complex.writelines(heat_in_charge)
+                heat_in_charge_complex.close()
+
+                press_in_charge = press_in +ifce_line + charge_lambda + mask_line + end_text
+                press_in_charge_solvated = open(each_pert_out_run_solvated_charge_press_in,'w')
+                press_in_charge_complex = open(each_pert_out_run_complex_charge_press_in,'w')
+                press_in_charge_solvated.writelines(press_in_charge)
+                press_in_charge_solvated.close()
+                press_in_charge_complex.writelines(press_in_charge)
+                press_in_charge_complex.close()
+
+                ti_in_charge = ti_in + ifce_line + charge_lambda + mask_line +end_text
+                ti_in_charge_solvated = open(each_pert_out_run_solvated_charge_ti_in,'w')
+                ti_in_charge_complex = open(each_pert_out_run_complex_charge_ti_in,'w')
+                ti_in_charge_solvated.writelines(ti_in_charge)
+                ti_in_charge_solvated.close()
+                ti_in_charge_complex.writelines(ti_in_charge)
+                ti_in_charge_complex.close()

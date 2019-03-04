@@ -196,11 +196,107 @@ def obtain_mask_line(original_input):
 def obtain_ifmbar(lambdas, lambda_list):
     state_number = len(lambda_list)
     mbar_line = "ifmbar = 1, bar_intervall = 500, mbar_states = " + str(state_number) + "\n"
-    mbar_lambda = lambdas + '\n'
+    mbar_lambda = "mbar_lambda = " + lambdas + '\n'
     mbar = mbar_line + mbar_lambda
     print("the mbar line is:")
     print("mbar")
     return mbar
+
+
+def prepare_folder_and_configuration(each_pert_abs, each_pert_out, folder_name, lambda_values):
+    # make the vdw input folder
+    each_pert_out_run_complex = each_pert_out + "/complex"
+    each_pert_out_run_solvated = each_pert_out + "/solvated"
+    each_pert_out_run_complex_vdw = each_pert_out_run_complex + "/" + folder_name
+    each_pert_out_run_solvated_vdw = each_pert_out_run_solvated + "/" + folder_name
+    make_directory(each_pert_out_run_complex_vdw)
+    make_directory(each_pert_out_run_solvated_vdw)
+
+    # read the vdw simulation data
+    original_vdw_in = read_file(each_pert_abs + 'complex/' + folder_name + '.in')  # complex and solvated are the same
+    mask_line = obtain_mask_line(original_vdw_in)
+    lambda_list = lambda_values.split(",")
+    vdw_mbar = obtain_ifmbar(lambda_values, lambda_list)
+    for each_lambda in lambda_list:
+        output_folder_complex = each_pert_out_run_complex_vdw + "/" + str(each_lambda)
+        output_folder_solvated = each_pert_out_run_solvated_vdw + "/" + str(each_lambda)
+        make_directory(output_folder_complex)
+        make_directory(output_folder_solvated)
+
+        each_pert_out_run_complex_vdw_min_in = each_pert_out_run_complex + "/" + folder_name + "/" + str(
+            each_lambda) + "/min.in"
+        each_pert_out_run_solvated_vdw_min_in = each_pert_out_run_solvated + "/" + folder_name + "/" + str(
+            each_lambda) + "/min.in"
+        each_pert_out_run_complex_vdw_heat_in = each_pert_out_run_complex + "/" + folder_name + "/" + str(
+            each_lambda) + "/heat.in"
+        each_pert_out_run_solvated_vdw_heat_in = each_pert_out_run_solvated + "/" + folder_name + "/" + str(
+            each_lambda) + "/heat.in"
+        each_pert_out_run_complex_vdw_press_in = each_pert_out_run_complex + "/" + folder_name + "/" + str(
+            each_lambda) + "/press.in"
+        each_pert_out_run_solvated_vdw_press_in = each_pert_out_run_solvated + "/" + folder_name + "/" + str(
+            each_lambda) + "/press.in"
+        each_pert_out_run_complex_vdw_ti_in = each_pert_out_run_complex + "/" + folder_name + "/" + str(
+            each_lambda) + "/ti.in"
+        each_pert_out_run_solvated_vdw_ti_in = each_pert_out_run_solvated + "/" + folder_name + "/" + str(
+            each_lambda) + "/ti.in"
+
+        ifce_line = obtain_ifce_line(original_vdw_in, each_lambda)
+        min_in_vdw = min_in + ifce_line + vdw_mbar + mask_line + end_text
+        min_in_vdw_solvated = open(each_pert_out_run_solvated_vdw_min_in, 'w')
+        min_in_vdw_complex = open(each_pert_out_run_complex_vdw_min_in, 'w')
+        min_in_vdw_solvated.writelines(min_in_vdw)
+        min_in_vdw_solvated.close()
+        min_in_vdw_complex.writelines(min_in_vdw)
+        min_in_vdw_complex.close()
+
+        heat_in_vdw = heat_in_start + ifce_line + vdw_mbar + mask_line + heat_in_end
+        heat_in_vdw_solvated = open(each_pert_out_run_solvated_vdw_heat_in, 'w')
+        heat_in_vdw_complex = open(each_pert_out_run_complex_vdw_heat_in, 'w')
+        heat_in_vdw_solvated.writelines(heat_in_vdw)
+        heat_in_vdw_solvated.close()
+        heat_in_vdw_complex.writelines(heat_in_vdw)
+        heat_in_vdw_complex.close()
+
+        press_in_vdw = press_in + ifce_line + vdw_mbar + mask_line + end_text
+        press_in_vdw_solvated = open(each_pert_out_run_solvated_vdw_press_in, 'w')
+        press_in_vdw_complex = open(each_pert_out_run_complex_vdw_press_in, 'w')
+        press_in_vdw_solvated.writelines(press_in_vdw)
+        press_in_vdw_solvated.close()
+        press_in_vdw_complex.writelines(press_in_vdw)
+        press_in_vdw_complex.close()
+
+        ti_in_vdw = ti_in + ifce_line + vdw_mbar + mask_line + end_text
+        ti_in_vdw_solvated = open(each_pert_out_run_solvated_vdw_ti_in, 'w')
+        ti_in_vdw_complex = open(each_pert_out_run_complex_vdw_ti_in, 'w')
+        ti_in_vdw_solvated.writelines(ti_in_vdw)
+        ti_in_vdw_solvated.close()
+        ti_in_vdw_complex.writelines(ti_in_vdw)
+        ti_in_vdw_complex.close()
+
+
+def copy_system(each_pert_out, each_pert_abs, folder_name, lambda_values):
+    lambda_list = lambda_values.split(",")
+    each_pert_out_run_complex = each_pert_out + "/complex"
+    each_pert_out_run_solvated = each_pert_out + "/solvated"
+    each_pert_out_run_complex_vdw = each_pert_out_run_complex + "/" + folder_name
+    each_pert_out_run_solvated_vdw = each_pert_out_run_solvated + "/" + folder_name
+    original_file_complex = each_pert_abs + "/complex"
+    original_file_solvated = each_pert_out + "/solvated"
+    for each_lambda in lambda_list:
+        cmds = ['cp ' + original_file_complex + '/' + folder_name + '.pdb ' + each_pert_out_run_complex_vdw + '/' + str(
+            each_lambda),
+                'cp ' + original_file_complex + '/' + folder_name + '.parm7 ' + each_pert_out_run_complex_vdw + '/' + str(
+                    each_lambda),
+                'cp ' + original_file_complex + '/' + folder_name + '.rst7 ' + each_pert_out_run_complex_vdw + '/' + str(
+                    each_lambda),
+                'cp ' + original_file_solvated + '/' + folder_name + '.pdb ' + each_pert_out_run_solvated_vdw + '/' + str(
+                    each_lambda),
+                'cp ' + original_file_solvated + '/' + folder_name + '.parm7 ' + each_pert_out_run_solvated_vdw + '/' + str(
+                    each_lambda),
+                'cp ' + original_file_solvated + '/' + folder_name + '.rst7 ' + each_pert_out_run_solvated_vdw + '/' + str(
+                    each_lambda), ]
+        for i in cmds:
+            os.system(i)
 
 
 if __name__ == "__main__":
@@ -219,67 +315,17 @@ if __name__ == "__main__":
         make_directory(each_pert_out_run_complex)
         make_directory(each_pert_out_run_solvated)
         states = check_pert_state(each_pert_abs)
-        # make the vdw input folder
-        each_pert_out_run_complex_vdw = each_pert_out_run_complex + "/vdw"
-        each_pert_out_run_solvated_vdw = each_pert_out_run_solvated + "/vdw"
-        make_directory(each_pert_out_run_complex_vdw)
-        make_directory(each_pert_out_run_solvated_vdw)
-        each_pert_out_run_complex_vdw_min_in = each_pert_out_run_complex + "/vdw/min.in"
-        each_pert_out_run_solvated_vdw_min_in = each_pert_out_run_solvated + "/vdw/min.in"
-        each_pert_out_run_complex_vdw_heat_in = each_pert_out_run_complex + "/vdw/heat.in"
-        each_pert_out_run_solvated_vdw_heat_in = each_pert_out_run_solvated + "/vdw/heat.in"
-        each_pert_out_run_complex_vdw_press_in = each_pert_out_run_complex + "/vdw/press.in"
-        each_pert_out_run_solvated_vdw_press_in = each_pert_out_run_solvated + "/vdw/press.in"
-        each_pert_out_run_complex_vdw_ti_in = each_pert_out_run_complex + "/vdw/ti.in"
-        each_pert_out_run_solvated_vdw_ti_in = each_pert_out_run_solvated + "/vdw/ti.in"
 
-        # read the vdw simulation data
-        original_vdw_in = read_file(each_pert_abs + 'complex/vdw.in') # complex and solvated are the same
-        mask_line = obtain_mask_line(original_vdw_in)
-        vdw_mbar = obtain_ifmbar(vdw_lambda, vdw_lambda_list)
-
-        for each_lambda in vdw_lambda_list:
-            ifce_line = obtain_ifce_line(original_vdw_in, each_lambda)
-            min_in_vdw = min_in + ifce_line + vdw_lambda +mask_line +end_text
-            min_in_vdw_solvated = open(each_pert_out_run_solvated_vdw_min_in,'w')
-            min_in_vdw_complex = open(each_pert_out_run_complex_vdw_min_in,'w')
-            min_in_vdw_solvated.writelines(min_in_vdw)
-            min_in_vdw_solvated.close()
-            min_in_vdw_complex.writelines(min_in_vdw)
-            min_in_vdw_complex.close()
-
-            heat_in_vdw = heat_in_start + ifce_line + vdw_lambda + mask_line + heat_in_end
-            heat_in_vdw_solvated = open(each_pert_out_run_solvated_vdw_heat_in,'w')
-            heat_in_vdw_complex = open(each_pert_out_run_complex_vdw_heat_in,'w')
-            heat_in_vdw_solvated.writelines(heat_in_vdw)
-            heat_in_vdw_solvated.close()
-            heat_in_vdw_complex.writelines(heat_in_vdw)
-            heat_in_vdw_complex.close()
-
-            press_in_vdw = press_in +ifce_line + vdw_lambda + mask_line + end_text
-            press_in_vdw_solvated = open(each_pert_out_run_solvated_vdw_press_in,'w')
-            press_in_vdw_complex = open(each_pert_out_run_complex_vdw_press_in,'w')
-            press_in_vdw_solvated.writelines(press_in_vdw)
-            press_in_vdw_solvated.close()
-            press_in_vdw_complex.writelines(press_in_vdw)
-            press_in_vdw_complex.close()
-
-            ti_in_vdw = ti_in + ifce_line + vdw_lambda + mask_line +end_text
-            ti_in_vdw_solvated = open(each_pert_out_run_solvated_vdw_ti_in,'w')
-            ti_in_vdw_complex = open(each_pert_out_run_complex_vdw_ti_in,'w')
-            ti_in_vdw_solvated.writelines(ti_in_vdw)
-            ti_in_vdw_solvated.close()
-            ti_in_vdw_complex.writelines(ti_in_vdw)
-            ti_in_vdw_complex.close()
-
-
-
-        # make the decharge input
-        if states["decharge"]:
-            pass
+        prepare_folder_and_configuration(each_pert_abs, "vdw", vdw_lambda)
+        copy_system(each_pert_out, each_pert_abs, "vdw", vdw_lambda)
         # make the recharge input
         if states["recharge"]:
-            pass
+            prepare_folder_and_configuration(each_pert_out, each_pert_abs, "recharge", charge_lambda)
+            copy_system(each_pert_out, each_pert_abs, "recharge", charge_lambda)
         # make the charge input
         if states["charge"]:
-            pass
+            prepare_folder_and_configuration(each_pert_out, each_pert_out, each_pert_abs, "charge", charge_lambda)
+            copy_system(each_pert_out, each_pert_abs, "charge", charge_lambda)
+        if states["decharge"]:
+            prepare_folder_and_configuration(each_pert_out, each_pert_abs, "decharge", charge_lambda)
+            copy_system(each_pert_out, each_pert_abs, "decharge", charge_lambda)
