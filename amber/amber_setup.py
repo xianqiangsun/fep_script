@@ -4,7 +4,8 @@ alchemical-analysis
 
 test folder:
 regor : /home/leos/work/hpk1/fep/fes_setup_amber
-catipiller:
+catipiller: /home/leos/hgst/working/regor/cdk/fep/fes_setup_1/test
+test :
 '''
 import os
 import sys
@@ -108,6 +109,46 @@ end_text = ''' /
  /
 '''
 
+sub_sh_start='''#!/bin/sh
+#
+# Run all ligand simulations.  This is mostly a template for the LSF job
+# scheduler.
+#
+mdrun=$AMBERHOME/bin/pmemd.MPI
+pmemd_cuda=$AMBERHOME/bin/pmemd.cuda
+pmemd_mpi=$AMBERHOME/bin/pmemd.MPI
+pmemd=$AMBERHOME/bin/pmemd
+
+'''
+
+sub_sh_end = '''
+#for w in $windows; do
+echo "Min"
+$pmemd \
+  -i min.in -p ${file_name}.parm7 -c ${file_name}.rst7 \
+  -ref ${file_name}.rst7 \
+  -O -o min.out -e min.en -inf min.info -r min.rst7 -l min.log
+
+echo "Heating..."
+$pmemd_cuda \
+  -i heat.in -p ${file_name}.parm7 -c min.rst7 -ref ${file_name}.rst7 \
+  -O -o heat.out -e heat.en -inf heat.info -r heat.rst7 -x heat.nc -l heat.log
+
+echo "Pressurising..."
+$pmemd_cuda \
+  -i press.in -p ${file_name}.parm7 -c heat.rst7 -ref heat.rst7 \
+  -O -o press.out -e press.en -inf press.info -r press.rst7 -x press.nc \
+  -l press.log
+
+echo "TI..."
+$pmemd_cuda \
+  -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 \
+  -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc \
+  -l ti.log
+cd ../
+done
+
+'''
 
 def make_directory(folder):
     '''
@@ -169,7 +210,7 @@ def obtain_ifce_line(original_input, lambda_no):
     ifce_line = '''
     '''
     for el in original_input:
-        if el[:5] == "  icfe":
+        if el[:5] == " icfe":
             ifce_line = el.replace("clambda = %L%", "clambda = " + str(lambda_no))
             print("the ifce line at: ", lambda_no, " is")
             print(ifce_line)
@@ -177,17 +218,16 @@ def obtain_ifce_line(original_input, lambda_no):
 
 
 def obtain_mask_line(original_input):
-    mask_line = '''
-    '''
+    mask_line = ''''''
     for el in original_input:
         if el[:8] == " timask1":
-            mask_line = mask_line + el
+            mask_line = mask_line +" "+ el
         elif el[:7] == "scmask1":
-            mask_line = mask_line + " " + el
+            mask_line = mask_line + "  " + el
         elif el[:7] == "scmask2":
-            mask_line = mask_line + " " + el
+            mask_line = mask_line + "  " + el
         elif el[:8] == " crgmask":
-            mask_line = mask_line + " " + el
+            mask_line = mask_line +" "+ el
     print("the mask line is:")
     print(mask_line)
     return mask_line
@@ -300,8 +340,22 @@ def copy_system(each_pert_out, each_pert_abs, folder_name, lambda_values):
                 'cp ' + original_file_solvated + folder_name + '.rst7 ' + each_pert_out_run_solvated_vdw + '/' + str(
                     each_lambda), ]
         for i in cmds:
-            print (i)
+            print(i)
             os.system(i)
+
+def generate_sh_middle(folder_name, lambda_values):
+    lambda_list = lambda_values.split(",")
+    lambda_line = ""
+    for el in lambda_list:
+        lambda_line += el+" "
+    print (lambda_line)
+    mid_lines = ''''''
+    mid_lines += "file_name="+folder_name+"\n"
+    mid_lines += "for i in "+lambda_line +";\n"
+    mid_lines += "do\n"
+    mid_lines += "cd $i\n"
+    return mid_lines
+
 
 
 if __name__ == "__main__":
@@ -324,14 +378,35 @@ if __name__ == "__main__":
 
         prepare_folder_and_configuration(each_pert_out, each_pert_abs, "vdw", vdw_lambda)
         copy_system(each_pert_out, each_pert_abs, "vdw", vdw_lambda)
+
+        sh_mid_line = generate_sh_middle("vdw",vdw_lambda)
+        sh_file = sub_sh_start + sh_mid_line + sub_sh_end
+
+        write_file(sh_file,each_pert_out_run_complex+"/"+"vdw"+'/submit.sh')
         # make the recharge input
         if states["recharge"]:
+
             prepare_folder_and_configuration(each_pert_out, each_pert_abs, "recharge", charge_lambda)
             copy_system(each_pert_out, each_pert_abs, "recharge", charge_lambda)
+
+            sh_mid_line = generate_sh_middle("recharge",charge_lambda)
+            sh_file = sub_sh_start + sh_mid_line + sub_sh_end
+
+            write_file(sh_file,each_pert_out_run_complex+"/"+"recharge"+'/submit.sh')
         # make the charge input
         if states["charge"]:
             prepare_folder_and_configuration(each_pert_out, each_pert_abs, "charge", charge_lambda)
             copy_system(each_pert_out, each_pert_abs, "charge", charge_lambda)
+
+            sh_mid_line = generate_sh_middle("charge",charge_lambda)
+            sh_file = sub_sh_start + sh_mid_line + sub_sh_end
+
+            write_file(sh_file,each_pert_out_run_complex+"/"+"charge"+'/submit.sh')
         if states["decharge"]:
             prepare_folder_and_configuration(each_pert_out, each_pert_abs, "decharge", charge_lambda)
             copy_system(each_pert_out, each_pert_abs, "decharge", charge_lambda)
+
+            sh_mid_line = generate_sh_middle("decharge",charge_lambda)
+            sh_file = sub_sh_start + sh_mid_line + sub_sh_end
+
+            write_file(sh_file,each_pert_out_run_complex+"/"+"decharge"+'/submit.sh')
