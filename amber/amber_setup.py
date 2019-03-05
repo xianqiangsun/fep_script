@@ -5,7 +5,7 @@ alchemical-analysis
 test folder:
 regor : /home/leos/work/hpk1/fep/fes_setup_amber
 catipiller: /home/leos/hgst/working/regor/cdk/fep/fes_setup_1/test
-test :
+test : python amber_setup.py -i ../_perturbations/pmemd -o .
 '''
 import os
 import sys
@@ -109,7 +109,7 @@ end_text = ''' /
  /
 '''
 
-sub_sh_start='''#!/bin/sh
+sub_sh_start = '''#!/bin/sh
 #
 # Run all ligand simulations.  This is mostly a template for the LSF job
 # scheduler.
@@ -150,7 +150,8 @@ done
 
 '''
 
-collection_sub_sh ='''#!/bin/sh\n'''
+collection_sub_sh = '''#!/bin/sh\n'''
+
 
 def make_directory(folder):
     '''
@@ -223,13 +224,13 @@ def obtain_mask_line(original_input):
     mask_line = ''''''
     for el in original_input:
         if el[:8] == " timask1":
-            mask_line = mask_line +" "+ el
+            mask_line = mask_line + " " + el
         elif el[:7] == "scmask1":
             mask_line = mask_line + "  " + el
         elif el[:7] == "scmask2":
             mask_line = mask_line + "  " + el
         elif el[:8] == " crgmask":
-            mask_line = mask_line +" "+ el
+            mask_line = mask_line + " " + el
     print("the mask line is:")
     print(mask_line)
     return mask_line
@@ -345,18 +346,20 @@ def copy_system(each_pert_out, each_pert_abs, folder_name, lambda_values):
             print(i)
             os.system(i)
 
+
 def generate_sh_middle(folder_name, lambda_values):
     lambda_list = lambda_values.split(",")
     lambda_line = ""
     for el in lambda_list:
-        lambda_line += el+" "
-    print (lambda_line)
+        lambda_line += el + " "
+    print(lambda_line)
     mid_lines = ''''''
-    mid_lines += "file_name="+folder_name+"\n"
-    mid_lines += "for i in "+lambda_line +";\n"
+    mid_lines += "file_name=" + folder_name + "\n"
+    mid_lines += "for i in " + lambda_line + ";\n"
     mid_lines += "do\n"
     mid_lines += "cd $i\n"
     return mid_lines
+
 
 if __name__ == "__main__":
     input_folder = args.input_folder
@@ -367,12 +370,11 @@ if __name__ == "__main__":
     vdw_lambda_list = vdw_lambda.split(",")
     all_pert_folder = os.listdir(input_folder)
 
-    first_sub_line ="for i in "
+    first_sub_line = "for i in "
     for each_pert in all_pert_folder:
         second_sub_line = "for j in complex solvated"
         third_sub_line = "for k in vdw "
         first_sub_line += each_pert + " "
-
 
         each_pert_abs = os.path.abspath(input_folder) + "/" + each_pert
         each_pert_out = output_folder + "/" + each_pert
@@ -386,41 +388,40 @@ if __name__ == "__main__":
         prepare_folder_and_configuration(each_pert_out, each_pert_abs, "vdw", vdw_lambda)
         copy_system(each_pert_out, each_pert_abs, "vdw", vdw_lambda)
 
-        sh_mid_line = generate_sh_middle("vdw",vdw_lambda)
+        sh_mid_line = generate_sh_middle("vdw", vdw_lambda)
         sh_file = sub_sh_start + sh_mid_line + sub_sh_end
 
-        write_file(sh_file,each_pert_out_run_complex+"/"+"vdw"+'/submit.sh')
+        write_file(sh_file, each_pert_out_run_complex + "/" + "vdw" + '/submit.sh')
         # make the recharge input
         if states["recharge"]:
-            third_sub_line +=" recharge"
+            third_sub_line += " recharge"
 
             prepare_folder_and_configuration(each_pert_out, each_pert_abs, "recharge", charge_lambda)
             copy_system(each_pert_out, each_pert_abs, "recharge", charge_lambda)
 
-            sh_mid_line = generate_sh_middle("recharge",charge_lambda)
+            sh_mid_line = generate_sh_middle("recharge", charge_lambda)
             sh_file = sub_sh_start + sh_mid_line + sub_sh_end
 
-            write_file(sh_file,each_pert_out_run_complex+"/"+"recharge"+'/submit.sh')
+            write_file(sh_file, each_pert_out_run_complex + "/" + "recharge" + '/submit.sh')
         # make the charge input
         if states["charge"]:
-            third_sub_line +=" charge"
+            third_sub_line += " charge"
             prepare_folder_and_configuration(each_pert_out, each_pert_abs, "charge", charge_lambda)
             copy_system(each_pert_out, each_pert_abs, "charge", charge_lambda)
 
-            sh_mid_line = generate_sh_middle("charge",charge_lambda)
+            sh_mid_line = generate_sh_middle("charge", charge_lambda)
             sh_file = sub_sh_start + sh_mid_line + sub_sh_end
 
-            write_file(sh_file,each_pert_out_run_complex+"/"+"charge"+'/submit.sh')
+            write_file(sh_file, each_pert_out_run_complex + "/" + "charge" + '/submit.sh')
         if states["decharge"]:
-            third_sub_line +=" decharge"
+            third_sub_line += " decharge"
             prepare_folder_and_configuration(each_pert_out, each_pert_abs, "decharge", charge_lambda)
             copy_system(each_pert_out, each_pert_abs, "decharge", charge_lambda)
 
-            sh_mid_line = generate_sh_middle("decharge",charge_lambda)
+            sh_mid_line = generate_sh_middle("decharge", charge_lambda)
             sh_file = sub_sh_start + sh_mid_line + sub_sh_end
 
-            write_file(sh_file,each_pert_out_run_complex+"/"+"decharge"+'/submit.sh')
-    collection_sub_sh = collection_sub_sh + first_sub_line+";\ndo\ncd $i\necho working on $i\n"+second_sub_line+";\ndo\ncd $j\necho working on $j\n"+third_sub_line+";\ndo\ncd $k\necho working on $k\n"+\
-        "sh submit.sh\n"+"\ncd ..\ndone\ncd ..\ndone\ncd ..\ndone"
-    write_file(collection_sub_sh,output_folder+"/submit.sh")
-
+            write_file(sh_file, each_pert_out_run_complex + "/" + "decharge" + '/submit.sh')
+    collection_sub_sh = collection_sub_sh + first_sub_line + ";\ndo\ncd $i\necho working on $i\n" + second_sub_line + ";\ndo\ncd $j\necho working on $j\n" + third_sub_line + ";\ndo\ncd $k\necho working on $k\n" + \
+                        "sh submit.sh\n" + "\ncd ..\ndone\ncd ..\ndone\ncd ..\ndone"
+    write_file(collection_sub_sh, output_folder + "/submit.sh")
