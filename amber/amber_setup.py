@@ -125,7 +125,7 @@ sub_sh_start = '''#!/bin/sh
 #
 mdrun=$AMBERHOME/bin/pmemd.MPI
 pmemd_cuda=$AMBERHOME/bin/pmemd.cuda
-pmemd_mpi="mpirun -np 20 $AMBERHOME/bin/pmemd.MPI"
+pmemd_mpi="mpirun -np 16 $AMBERHOME/bin/pmemd.MPI"
 pmemd=$AMBERHOME/bin/pmemd
 
 '''
@@ -133,7 +133,7 @@ pmemd=$AMBERHOME/bin/pmemd
 sub_sh_end = '''
 #for w in $windows; do
 echo "Min"
-$pmemd \
+$pmemd_mpi \
   -i min.in -p ${file_name}.parm7 -c ${file_name}.rst7 \
   -ref ${file_name}.rst7 \
   -O -o min.out -e min.en -inf min.info -r min.rst7 -l min.log
