@@ -29,7 +29,7 @@ args = parser.parse_args()
 min_in = '''minimisation
  &cntrl
    imin = 1, ntmin = 2,
-   maxcyc = 100,
+   maxcyc = 1000,
    ntpr = 20, ntwe = 20,
    ntb = 1,
    ntr = 1, restraint_wt = 5.00,
@@ -47,9 +47,9 @@ min_in = '''minimisation
  '''
 heat_in_start = '''heating
  &cntrl
-   imin = 0, nstlim = 10000, irest = 0, ntx = 1, dt = 0.002,
+   imin = 0, nstlim = 100000, irest = 0, ntx = 1, dt = 0.002,
    nmropt = 1,
-   ntt = 1, temp0 = 300.0, tempi = 5.0, tautp = 1.0,
+   ntt = 1, temp0 = 298.0, tempi = 5.0, tautp = 1.0,
    ntb = 1,
    ntc = 2, ntf = 1,
    ioutfm = 1, iwrap = 1,
@@ -65,8 +65,8 @@ heat_in_end = ''' /
 
  &wt
    type='TEMP0',
-   istep1 = 0, istep2 = 8000,
-   value1 = 5.0, value2 = 300.0
+   istep1 = 0, istep2 = 50000,
+   value1 = 5.0, value2 = 298.0
  /
 
  &wt type = 'END'
@@ -75,9 +75,9 @@ heat_in_end = ''' /
 
 press_in = '''pressurising
  &cntrl
-   imin = 0, nstlim = 10000, irest = 1, ntx = 5, dt = 0.002,
-   ntt = 1, temp0 = 300.0, tautp = 1.0,
-   ntp = 1, pres0 = 1.0, taup = 2.0,
+   imin = 0, nstlim = 20000, irest = 1, ntx = 5, dt = 0.002,
+   ntt = 1, temp0 = 298.0, tautp = 5.0,
+   ntp = 1, pres0 = 1.0, taup = 5.0,
    ntb = 2,
    ntc = 2, ntf = 1,
    ioutfm = 1, iwrap = 1,
@@ -116,7 +116,7 @@ sub_sh_start = '''#!/bin/sh
 #
 mdrun=$AMBERHOME/bin/pmemd.MPI
 pmemd_cuda=$AMBERHOME/bin/pmemd.cuda
-pmemd_mpi=$AMBERHOME/bin/pmemd.MPI
+pmemd_mpi="mpirun -np 20 $AMBERHOME/bin/pmemd.MPI"
 pmemd=$AMBERHOME/bin/pmemd
 
 '''
@@ -135,7 +135,7 @@ $pmemd_cuda \
   -O -o heat.out -e heat.en -inf heat.info -r heat.rst7 -x heat.nc -l heat.log
 
 echo "Pressurising..."
-$pmemd_cuda \
+$pmemd_mpi \
   -i press.in -p ${file_name}.parm7 -c heat.rst7 -ref heat.rst7 \
   -O -o press.out -e press.en -inf press.info -r press.rst7 -x press.nc \
   -l press.log
@@ -372,8 +372,8 @@ if __name__ == "__main__":
 
     first_sub_line = "for i in "
     for each_pert in all_pert_folder:
-        second_sub_line = "for j in complex solvated"
-        third_sub_line = "for k in vdw "
+        second_sub_line = "for j in $(ls -d */)"
+        third_sub_line = "for k in $(ls -d */)"
         first_sub_line += each_pert + " "
 
         each_pert_abs = os.path.abspath(input_folder) + "/" + each_pert
@@ -394,7 +394,6 @@ if __name__ == "__main__":
         write_file(sh_file, each_pert_out_run_complex + "/" + "vdw" + '/submit.sh')
         # make the recharge input
         if states["recharge"]:
-            third_sub_line += " recharge"
 
             prepare_folder_and_configuration(each_pert_out, each_pert_abs, "recharge", charge_lambda)
             copy_system(each_pert_out, each_pert_abs, "recharge", charge_lambda)
@@ -405,7 +404,6 @@ if __name__ == "__main__":
             write_file(sh_file, each_pert_out_run_complex + "/" + "recharge" + '/submit.sh')
         # make the charge input
         if states["charge"]:
-            third_sub_line += " charge"
             prepare_folder_and_configuration(each_pert_out, each_pert_abs, "charge", charge_lambda)
             copy_system(each_pert_out, each_pert_abs, "charge", charge_lambda)
 
@@ -414,7 +412,6 @@ if __name__ == "__main__":
 
             write_file(sh_file, each_pert_out_run_complex + "/" + "charge" + '/submit.sh')
         if states["decharge"]:
-            third_sub_line += " decharge"
             prepare_folder_and_configuration(each_pert_out, each_pert_abs, "decharge", charge_lambda)
             copy_system(each_pert_out, each_pert_abs, "decharge", charge_lambda)
 
