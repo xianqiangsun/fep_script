@@ -36,4 +36,7 @@ propka = t
 [complex]
 # the following are required to create the morph in solution
 box.type = rectangular
+box.length = 12.0
+neutralize = yes
+
 

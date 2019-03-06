@@ -1,0 +1,37 @@
+FE_type = pmemd
+#pmemd, GROMACS, Sire
+AFE.separate_vdw_elec = TRUE
+
+[globals]
+forcefield = amber, ff14SB, tip3p
+gaff = gaff2
+logfile = dGmorph.log
+
+
+[ligand]
+basedir = ligands
+file.name = ligand.mol2
+box.type = rectangular
+box.length = 12.0
+neutralize = True
+
+morph_pairs = 162-OC > 162-COC,
+        162-COC > 162-OC,
+        162-OC > 162-CF3,
+        162-CF3 > 162-OC,
+        162-OC > 162-NCCC,
+        162-NCCC > 162-OC
+
+[protein]
+basedir = proteins
+molecules = CDK4
+propka = t
+box.length = 12.0
+neutralize = True
+
+[complex]
+# the following are required to create the morph in solution
+box.type = rectangular
+
+box.length = 12.0
+neutralize = True

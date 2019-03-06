@@ -109,8 +109,8 @@ if __name__ == '__main__':
   for a, b in zip(x, y):
     if a in data:
       v = data[a]
-      print a, v[0], v[1], v[2]
+      print (a, v[0], v[1], v[2])
     else:
-      print a, b
+      print (a, b)
 
-  print '# dG =', np.trapz(y, x)
+  print ('# dG =', np.trapz(y, x))

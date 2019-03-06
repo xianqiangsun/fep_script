@@ -1,0 +1,41 @@
+logfile = cdk4_ameba.log
+forcefield = amber, ff14SB, tip3p, hfe
+gaff = gaff2
+AFE.type = pmemd
+AFE.separate_vdw_elec = TRUE
+mdengine = amber, /mnt/hgst/leos_hgst/program/opt/amber18/bin/pmemd.cuda
+
+
+[ligand]
+basedir = ligands
+file.name = ligand.mol2
+box.type = rectangular
+box.length = 12.0
+neutralize = False
+min.nsteps = 100
+molecules = 162-CF3, 162-COC, 162-NCCC, 162-OC
+
+min.nsteps = 200
+min.ncyc = 100
+min.restr_force = 10.0
+min.restraint = notsolvent
+
+[protein]
+basedir = proteins
+molecules = CDK4
+propka = t
+
+[complex]
+# explicit enumeration of pairs, otherwise all-with-all creation
+pairs = CDK4 : 162-CF3, CDK4 : 162-COC, CDK4 : 162-NCCC, CDK4 : 162-OC
+
+box.type = rectangular
+box.length = 12.0
+align_axes = True
+neutralize = True
+
+min.nsteps = 2000
+min.ncyc   = 1000
+min.restr_force = 10.0
+min.restraint = :UNK
+
