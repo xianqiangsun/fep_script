@@ -56,7 +56,7 @@ min_in = '''minimisation
  '''
 heat_in_start = '''heating
  &cntrl
-   imin = 0, nstlim = 20000, irest = 0, ntx = 1, dt = 0.002,
+   imin = 0, nstlim = 50000, irest = 0, ntx = 1, dt = 0.002,
    nmropt = 1,
    ntt = 1, temp0 = 298.0, tempi = 5.0, tautp = 1.0,
    ntb = 1,
@@ -74,7 +74,7 @@ heat_in_end = ''' /
 
  &wt
    type='TEMP0',
-   istep1 = 0, istep2 = 10000,
+   istep1 = 0, istep2 = 25000,
    value1 = 5.0, value2 = 298.0
  /
 
