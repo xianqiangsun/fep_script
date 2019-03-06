@@ -6,6 +6,15 @@ test folder:
 regor : /home/leos/work/hpk1/fep/fes_setup_amber
 catipiller: /home/leos/hgst/working/regor/cdk/fep/fes_setup_1/test
 test : python amber_setup.py -i ../_perturbations/pmemd -o .
+
+kill nohup jobs
+
+ps -aux | grep "sh subm"
+
+export the CUDA device:
+
+export CUDA_VISIBLE_DEVICES="0,1,2"
+
 '''
 import os
 import sys
