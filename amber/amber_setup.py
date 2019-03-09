@@ -5,7 +5,7 @@ alchemical-analysis
 test folder:
 regor : /home/leos/work/hpk1/fep/fes_setup_amber
 catipiller: /home/leos/hgst/working/regor/cdk/fep/fes_setup_1/test
-test : python amber_setup.py -i ../_perturbations/pmemd -o .
+test : python amber_setup.py -i ../_perturbations/pmemd -o . -np 4
 
 kill nohup jobs
 
@@ -32,6 +32,7 @@ parser.add_argument('-charge_lambda', dest='charge_lambda', default="0.0, 0.2, 0
                     help="the lambda values for the charge")
 parser.add_argument('-vdw_lambda', dest='vdw_lambda', default="0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0",
                     help="the lambda values for the vdw")
+parser.add_argument('-np', dest="number_processor", default=4, help="number of processors that used for mpi run")
 
 args = parser.parse_args()
 
@@ -125,35 +126,39 @@ sub_sh_start = '''#!/bin/sh
 #
 mdrun=$AMBERHOME/bin/pmemd.MPI
 pmemd_cuda=$AMBERHOME/bin/pmemd.cuda
-pmemd_mpi="mpirun -np 16 $AMBERHOME/bin/pmemd.MPI"
+pmemd_mpi="mpirun -np '''+str(args.number_processor)+''' $AMBERHOME/bin/pmemd.MPI"
 pmemd=$AMBERHOME/bin/pmemd
 
 '''
 
 sub_sh_end = '''
-#for w in $windows; do
-echo "Min"
-$pmemd_mpi \
-  -i min.in -p ${file_name}.parm7 -c ${file_name}.rst7 \
-  -ref ${file_name}.rst7 \
-  -O -o min.out -e min.en -inf min.info -r min.rst7 -l min.log
+#$j the number of folder calculated
+#$k the number of folder left
 
-echo "Heating..."
-$pmemd_cuda \
-  -i heat.in -p ${file_name}.parm7 -c min.rst7 -ref ${file_name}.rst7 \
-  -O -o heat.out -e heat.en -inf heat.info -r heat.rst7 -x heat.nc -l heat.log
+if [ $j -eq 0 ] ;
+    then
+    echo $i "Mini..."
+    $pmemd -i min.in -p ${file_name}.parm7 -c ${file_name}.rst7 -ref ${file_name}.rst7 -O -o min.out -e min.en -inf min.info -r min.rst7 -l min.log
+    echo $i "Heating..."
+    $pmemd_cuda -i heat.in -p ${file_name}.parm7 -c min.rst7 -ref ${file_name}.rst7 -O -o heat.out -e heat.en -inf heat.info -r heat.rst7 -x heat.nc -l heat.log
+    echo $i "Pressurising..."
+    $pmemd_mpi -i press.in -p ${file_name}.parm7 -c heat.rst7 -ref heat.rst7 -O -o press.out -e press.en -inf press.info -r press.rst7 -x press.nc -l press.log
+    echo $i "TI..."
+    $pmemd_cuda -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log
+elif [ $j -ge 1 ] && [ $k -ge 1 ] ;
+    then
+    cp ../${ni}/ti.rst7 press.rst7
+    $pmemd_cuda -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log
+elif [ $k -eq 0 ] ;
+    then
+    cp ../${ni}/ti.rst7 press.rst7
+    nohup $pmemd_mpi -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log &
+fi    
+#$ni=i save previous i values used as directory name
+ni=$i
+let k--
+let j++
 
-echo "Pressurising..."
-$pmemd_mpi \
-  -i press.in -p ${file_name}.parm7 -c heat.rst7 -ref heat.rst7 \
-  -O -o press.out -e press.en -inf press.info -r press.rst7 -x press.nc \
-  -l press.log
-
-echo "TI..."
-$pmemd_cuda \
-  -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 \
-  -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc \
-  -l ti.log
 cd ../
 done
 
@@ -363,6 +368,8 @@ def generate_sh_middle(folder_name, lambda_values):
         lambda_line += el + " "
     print(lambda_line)
     mid_lines = ''''''
+    mid_lines += "k="+str(len(lambda_list))+'\n'
+    mid_lines += "j=0\n"
     mid_lines += "file_name=" + folder_name + "\n"
     mid_lines += "for i in " + lambda_line + ";\n"
     mid_lines += "do\n"
@@ -401,6 +408,7 @@ if __name__ == "__main__":
         sh_file = sub_sh_start + sh_mid_line + sub_sh_end
 
         write_file(sh_file, each_pert_out_run_complex + "/" + "vdw" + '/submit.sh')
+        write_file(sh_file, each_pert_out_run_solvated + "/" + "vdw" + '/submit.sh')
         # make the recharge input
         if states["recharge"]:
 
@@ -411,6 +419,7 @@ if __name__ == "__main__":
             sh_file = sub_sh_start + sh_mid_line + sub_sh_end
 
             write_file(sh_file, each_pert_out_run_complex + "/" + "recharge" + '/submit.sh')
+            write_file(sh_file, each_pert_out_run_solvated + "/" + "recharge" + '/submit.sh')
         # make the charge input
         if states["charge"]:
             prepare_folder_and_configuration(each_pert_out, each_pert_abs, "charge", charge_lambda)
@@ -420,6 +429,7 @@ if __name__ == "__main__":
             sh_file = sub_sh_start + sh_mid_line + sub_sh_end
 
             write_file(sh_file, each_pert_out_run_complex + "/" + "charge" + '/submit.sh')
+            write_file(sh_file, each_pert_out_run_solvated + "/" + "charge" + '/submit.sh')
         if states["decharge"]:
             prepare_folder_and_configuration(each_pert_out, each_pert_abs, "decharge", charge_lambda)
             copy_system(each_pert_out, each_pert_abs, "decharge", charge_lambda)
@@ -428,6 +438,7 @@ if __name__ == "__main__":
             sh_file = sub_sh_start + sh_mid_line + sub_sh_end
 
             write_file(sh_file, each_pert_out_run_complex + "/" + "decharge" + '/submit.sh')
+            write_file(sh_file, each_pert_out_run_solvated + "/" + "decharge" + '/submit.sh')
     collection_sub_sh = collection_sub_sh + first_sub_line + ";\ndo\ncd $i\necho working on $i\n" + second_sub_line + ";\ndo\ncd $j\necho working on $j\n" + third_sub_line + ";\ndo\ncd $k\necho working on $k\n" + \
                         "sh submit.sh\n" + "\ncd ..\ndone\ncd ..\ndone\ncd ..\ndone"
     write_file(collection_sub_sh, output_folder + "/submit.sh")
