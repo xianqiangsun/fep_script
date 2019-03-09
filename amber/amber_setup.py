@@ -370,7 +370,7 @@ def generate_sh_middle(folder_name, lambda_values):
         lambda_line += el + " "
     print(lambda_line)
     mid_lines = ''''''
-    mid_lines += "k="+str(len(lambda_list))+'\n'
+    mid_lines += "k="+str(len(lambda_list)-1)+'\n'
     mid_lines += "j=0\n"
     mid_lines += "file_name=" + folder_name + "\n"
     mid_lines += "for i in " + lambda_line + ";\n"
