@@ -148,9 +148,11 @@ if [ $j -eq 0 ] ;
 elif [ $j -ge 1 ] && [ $k -ge 1 ] ;
     then
     cp ../${ni}/ti.rst7 press.rst7
+    echo $i "Heating..."
     $pmemd_cuda -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log
 elif [ $k -eq 0 ] ;
     then
+    echo $i "Heating..."
     cp ../${ni}/ti.rst7 press.rst7
     nohup $pmemd_mpi -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log &
 fi    
