@@ -15,6 +15,8 @@ export the CUDA device:
 
 export CUDA_VISIBLE_DEVICES="0,1,2"
 
+c=$(echo "3.4+7/8-(5.94*3.14)" | bc)
+
 '''
 import os
 import sys
@@ -129,12 +131,12 @@ pmemd_cuda=$AMBERHOME/bin/pmemd.cuda
 pmemd_mpi="mpirun -np '''+str(args.number_processor)+''' $AMBERHOME/bin/pmemd.MPI"
 pmemd=$AMBERHOME/bin/pmemd
 
-'''
+'''+"mpino="+str(args.number_processor)
 
 sub_sh_end = '''
 #$j the number of folder calculated
 #$k the number of folder left
-
+np=$(nproc)
 if [ $j -eq 0 ] ;
     then
     echo $i "Mini..."
@@ -144,17 +146,20 @@ if [ $j -eq 0 ] ;
     echo $i "Pressurising..."
     $pmemd_mpi -i press.in -p ${file_name}.parm7 -c heat.rst7 -ref heat.rst7 -O -o press.out -e press.en -inf press.info -r press.rst7 -x press.nc -l press.log
     echo $i "TI..."
-    $pmemd_cuda -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log
+    $pmemd_mpi -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log
 elif [ $j -ge 1 ] && [ $k -ge 1 ] ;
     then
     cp ../${ni}/ti.rst7 press.rst7
     echo $i "Heating..."
-    $pmemd_cuda -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log
+    $pmemd_mpi -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log
 elif [ $k -eq 0 ] ;
     then
     echo $i "Heating..."
     cp ../${ni}/ti.rst7 press.rst7
-    nohup $pmemd_mpi -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log &
+    
+    f=$(mpstat |grep "all" | awk '{print $13}')
+    
+    $pmemd_mpi -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log &
 fi    
 #$ni=i save previous i values used as directory name
 ni=$i
