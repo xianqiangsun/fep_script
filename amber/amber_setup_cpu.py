@@ -91,7 +91,7 @@ heat_in_end = ''' /
 
 press_in = '''pressurising
  &cntrl
-   imin = 0, nstlim = 20000, irest = 1, ntx = 5, dt = 0.001,
+   imin = 0, nstlim = 50000, irest = 1, ntx = 5, dt = 0.001,
    ntt = 1, temp0 = 298.0, tautp = 5.0,
    ntp = 1, pres0 = 1.0, taup = 5.0,
    ntb = 2,
@@ -114,7 +114,7 @@ ti_in = '''TI/FEP, NpT, recharge transformation
   ntp = 1, barostat = 1, pres0 = 1.01325, taup = 2.0,                 
   ntwe = 1000, ntwx = 10000, ntpr = 10000, ntwr = 20000,
   ioutfm = 1, iwrap = 1, ntxo = 2,                                    
-                                                                     
+  tishake =1,                                                                   
   ! parameters for alchemical free energy simulation                  
   ntc = 2, ntf = 1,                                                   
   noshakemask = ':1,2',
@@ -395,9 +395,11 @@ def generate_sh_middle(folder_name, lambda_values):
 
 
 def submit_cpu(pmemd_mpi, file_name):
-    command_1 = pmemd_mpi + " -i press.in -p " + file_name + ".parm7 -c heat.rst7 -ref heat.rst7 -O -o press.out -e press.en -inf press.info -r press.rst7 -x press.nc -l press.log"
-    command_2 = pmemd_mpi + " -i ti.in -p " + file_name + ".parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log"
-    write_file(command_1+"\n"+command_2, "submit_cpu.sh")
+    command_1 = pmemd_mpi + " -i min.in -p " + file_name + ".parm7 -i min.in -p " + file_name + ".parm7 -c " + file_name+".rst7 -ref "+file_name+".rst7 -O -o min.out -e min.en -inf min.info -r min.rst7 -l min.log\n"
+    command_2 = pmemd_mpi + " -i heat.in -p " + file_name + ".parm7 -c min.rst7 -ref "+file_name+".rst7 -O -o heat.out -e heat.en -inf heat.info -r heat.rst7 -x heat.nc -l heat.log\n"
+    command_3 = pmemd_mpi + " -i press.in -p " + file_name + ".parm7 -c heat.rst7 -ref heat.rst7 -O -o press.out -e press.en -inf press.info -r press.rst7 -x press.nc -l press.log\n"
+    command_4 = pmemd_mpi + " -i ti.in -p " + file_name + ".parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log\n"
+    write_file(command_1+command_2+command_3+command_4, "submit_cpu.sh")
     os.system("nohup sh submit_cpu.sh &")
 
 def main_optimization():
@@ -466,7 +468,7 @@ def main_optimization():
                         "sh submit.sh\n" + "\ncd ..\ndone\ncd ..\ndone\ncd ..\ndone"
     write_file(collection_sub_sh, output_folder + "/submit.sh")
     # submit the heating steps with gpu
-    os.system("sh submit.sh")
+    #os.system("sh submit.sh")
 
 
 def main_md():
