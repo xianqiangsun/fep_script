@@ -135,7 +135,7 @@ pmemd_cuda=$AMBERHOME/bin/pmemd.cuda
 pmemd_mpi="mpirun -np ''' + str(args.number_processor) + ''' $AMBERHOME/bin/pmemd.MPI"
 pmemd=$AMBERHOME/bin/pmemd
 
-''' + "mpino=" + str(args.number_processor)
+''' + "mpino=" + str(args.number_processor)+"\n"
 
 sub_sh_end = '''
 #$j the number of folder calculated
@@ -144,21 +144,21 @@ np=$(nproc)
 if [ $j -eq 0 ] ;
     then
     echo $i "Mini..."
-    $pmemd_mpi -i min.in -p ${file_name}.parm7 -c ${file_name}.rst7 -ref ${file_name}.rst7 -O -o min.out -e min.en -inf min.info -r min.rst7 -l min.log
+    $pmemd -i min.in -p ${file_name}.parm7 -c ${file_name}.rst7 -ref ${file_name}.rst7 -O -o min.out -e min.en -inf min.info -r min.rst7 -l min.log
     echo $i "Heating..."
     $pmemd_cuda -i heat.in -p ${file_name}.parm7 -c min.rst7 -ref ${file_name}.rst7 -O -o heat.out -e heat.en -inf heat.info -r heat.rst7 -x heat.nc -l heat.log
-    #echo $i "Pressurising..."
-    #$pmemd_cuda -i press.in -p ${file_name}.parm7 -c heat.rst7 -ref heat.rst7 -O -o press.out -e press.en -inf press.info -r press.rst7 -x press.nc -l press.log
-    #echo $i "TI..."
-    #$pmemd_cuda -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log
+    echo $i "Pressurising..."
+    $pmemd_cuda -i press.in -p ${file_name}.parm7 -c heat.rst7 -ref heat.rst7 -O -o press.out -e press.en -inf press.info -r press.rst7 -x press.nc -l press.log
+    echo $i "TI..."
+    $pmemd_cuda -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log
 elif [ $j -ge 1 ] && [ $k -ge 1 ] ;
     then
     cp ../${ni}/ti.rst7 press.rst7
-    echo $i "Heating..."
+    echo $i "TI..."
     $pmemd_cuda -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log
 elif [ $k -eq 0 ] ;
     then
-    echo $i "Heating..."
+    echo $i "TI..."
     cp ../${ni}/ti.rst7 press.rst7
     f=$(mpstat |grep "all" | awk '{print $13}')
     
