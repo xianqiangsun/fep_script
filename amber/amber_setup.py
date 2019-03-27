@@ -63,7 +63,7 @@ min_in = '''minimisation
  '''
 heat_in_start = '''heating
  &cntrl
-   imin = 0, nstlim = 50000, irest = 0, ntx = 1, dt = 0.001,
+   irmin = 0, nstlim = 50000, irest = 0, ntx = 1, dt = 0.001,
    nmropt = 1,
    ntt = 1, temp0 = 298.0, tempi = 5.0, tautp = 1.0,
    ntb = 1,
@@ -118,7 +118,7 @@ ti_in = '''TI/FEP, NpT, recharge transformation
   ! parameters for alchemical free energy simulation                  
   ntc = 2, ntf = 1,                                                   
   noshakemask = ':1,2',
-  tishake =1, 
+  !tishake =1, 
 '''
 end_text = ''' /
  &ewald
@@ -146,29 +146,29 @@ if [ $j -eq 0 ] ;
     echo $i "Mini..."
     $pmemd_mpi -i min.in -p ${file_name}.parm7 -c ${file_name}.rst7 -ref ${file_name}.rst7 -O -o min.out -e min.en -inf min.info -r min.rst7 -l min.log
     echo $i "Heating..."
-    $pmemd_mpi -i heat.in -p ${file_name}.parm7 -c min.rst7 -ref ${file_name}.rst7 -O -o heat.out -e heat.en -inf heat.info -r heat.rst7 -x heat.nc -l heat.log
+    $pmemd_cuda -i heat.in -p ${file_name}.parm7 -c min.rst7 -ref ${file_name}.rst7 -O -o heat.out -e heat.en -inf heat.info -r heat.rst7 -x heat.nc -l heat.log
     #echo $i "Pressurising..."
-    #$pmemd_mpi -i press.in -p ${file_name}.parm7 -c heat.rst7 -ref heat.rst7 -O -o press.out -e press.en -inf press.info -r press.rst7 -x press.nc -l press.log
+    #$pmemd_cuda -i press.in -p ${file_name}.parm7 -c heat.rst7 -ref heat.rst7 -O -o press.out -e press.en -inf press.info -r press.rst7 -x press.nc -l press.log
     #echo $i "TI..."
-    #$pmemd_mpi -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log
+    #$pmemd_cuda -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log
 elif [ $j -ge 1 ] && [ $k -ge 1 ] ;
     then
     cp ../${ni}/ti.rst7 press.rst7
     echo $i "Heating..."
-    #$pmemd_mpi -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log
+    $pmemd_cuda -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log
 elif [ $k -eq 0 ] ;
     then
     echo $i "Heating..."
     cp ../${ni}/ti.rst7 press.rst7
     f=$(mpstat |grep "all" | awk '{print $13}')
     
-    #$pmemd_mpi -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log &
+    $pmemd_cuda -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log &
 fi    
 #$ni=i save previous i values used as directory name
 ni=$i
 let k--
 #stop updating j because we want to use gpu to optimize the structure and use it as input for optimization
-#let j++
+let j++
 
 cd ../
 done
@@ -539,4 +539,4 @@ def main_md():
 
 if __name__ == "__main__":
     main_optimization()
-    main_md()
+    # main_md()
