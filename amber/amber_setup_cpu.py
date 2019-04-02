@@ -52,18 +52,9 @@ min_in = '''minimisation
    restraintmask='!:WAT & !@H=',
 '''
 
-'''
-   icfe = 1, ifsc = 1, clambda = 0.5, scalpha = 0.5, scbeta = 12.0,
-   logdvdl = 0,
-   timask1 = ':BNZ', timask2 = ':PHN',
-   scmask1 = ':BNZ@H6', scmask2 = ':PHN@O1,H6'
- /
- &ewald
- /
- '''
 heat_in_start = '''heating
  &cntrl
-   imin = 0, nstlim = 50000, irest = 0, ntx = 1, dt = 0.001,
+   imin = 0, nstlim = 100000, irest = 0, ntx = 1, dt = 0.001,
    nmropt = 1,
    ntt = 1, temp0 = 298.0, tempi = 5.0, tautp = 1.0,
    ntb = 1,
@@ -81,7 +72,7 @@ heat_in_end = ''' /
 
  &wt
    type='TEMP0',
-   istep1 = 0, istep2 = 25000,
+   istep1 = 0, istep2 = 50000,
    value1 = 5.0, value2 = 298.0
  /
 
@@ -91,7 +82,7 @@ heat_in_end = ''' /
 
 press_in = '''pressurising
  &cntrl
-   imin = 0, nstlim = 50000, irest = 1, ntx = 5, dt = 0.001,
+   imin = 0, nstlim = 100000, irest = 1, ntx = 5, dt = 0.001,
    ntt = 1, temp0 = 298.0, tautp = 5.0,
    ntp = 1, pres0 = 1.0, taup = 5.0,
    ntb = 2,
@@ -108,7 +99,7 @@ ti_in = '''TI/FEP, NpT, recharge transformation
  ! please adjust namelist parameters to your needs!                  
                                                                      
  ! parameters for general MD                                         
-  imin = 0, nstlim = 500000, irest = 1, ntx = 5, dt = 0.001,    
+  imin = 0, nstlim = 500000, irest = 1, ntx = 5, dt = 0.002,    
   ntt = 3, temp0 = 298.0, gamma_ln = 2.0, ig = -1,                    
   ntb = 2,                                                            
   ntp = 1, barostat = 1, pres0 = 1.01325, taup = 2.0,                 

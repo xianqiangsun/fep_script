@@ -1,12 +1,13 @@
 '''
+This script is used to do the alchemical with pmwme_cuda from both directions in case of crash
 analysis:
 alchemical-analysis
 
 test folder:
 regor : /home/leos/work/hpk1/fep/fes_setup_amber
 catipiller: /home/leos/hgst/working/regor/cdk/fep/fes_setup_1/test
-test : python amber_setup.py -i ../_perturbations/pmemd -o . -np 4
-
+test:
+python amber_setup_half.py -i ../_perturbations/pmemd-softcore -o . -np 8 -charge_lambda "0.0, 0.1, 0.2, 0.3, 0.4, 0.5" -vdw_lambda "0.0, 0.1, 0.2, 0.3, 0.4, 0.5"
 kill nohup jobs
 
 ps -aux | grep "sh subm"
@@ -48,10 +49,19 @@ min_in = '''minimisation
    maxcyc = 1000,
    ntpr = 20, ntwe = 20,
    ntb = 1,
-   ntr = 1, restraint_wt = 20.00,
+   ntr = 1, restraint_wt = 10.00,
    restraintmask='!:WAT & !@H=',
 '''
 
+'''
+   icfe = 1, ifsc = 1, clambda = 0.5, scalpha = 0.5, scbeta = 12.0,
+   logdvdl = 0,
+   timask1 = ':BNZ', timask2 = ':PHN',
+   scmask1 = ':BNZ@H6', scmask2 = ':PHN@O1,H6'
+ /
+ &ewald
+ /
+ '''
 heat_in_start = '''heating
  &cntrl
    imin = 0, nstlim = 100000, irest = 0, ntx = 1, dt = 0.001,
@@ -62,7 +72,7 @@ heat_in_start = '''heating
    ioutfm = 1, iwrap = 1,
    ntwe = 1000, ntwx = 10000, ntpr = 10000, ntwr = 20000,
    tishake =1,
-   ntr = 1, restraint_wt = 10.00,
+   ntr = 1, restraint_wt = 5.00,
    restraintmask='!:WAT & !@H=',
 '''
 
@@ -72,7 +82,7 @@ heat_in_end = ''' /
 
  &wt
    type='TEMP0',
-   istep1 = 0, istep2 = 75000,
+   istep1 = 0, istep2 = 25000,
    value1 = 5.0, value2 = 298.0
  /
 
@@ -99,7 +109,7 @@ ti_in = '''TI/FEP, NpT, recharge transformation
  ! please adjust namelist parameters to your needs!                  
                                                                      
  ! parameters for general MD                                         
-  imin = 0, nstlim = 500000, irest = 1, ntx = 5, dt = 0.002,    
+  imin = 0, nstlim = 500000, irest = 1, ntx = 5, dt = 0.001,    
   ntt = 3, temp0 = 298.0, gamma_ln = 2.0, ig = -1,                    
   ntb = 2,                                                            
   ntp = 1, barostat = 1, pres0 = 1.01325, taup = 2.0,                 
@@ -109,7 +119,7 @@ ti_in = '''TI/FEP, NpT, recharge transformation
   ! parameters for alchemical free energy simulation                  
   ntc = 2, ntf = 1,                                                   
   noshakemask = ':1,2',
-  !tishake =1, 
+  tishake =1, 
 '''
 end_text = ''' /
  &ewald
@@ -137,7 +147,7 @@ if [ $j -eq 0 ] ;
     echo $i "Mini..."
     $pmemd_mpi -i min.in -p ${file_name}.parm7 -c ${file_name}.rst7 -ref ${file_name}.rst7 -O -o min.out -e min.en -inf min.info -r min.rst7 -l min.log
     echo $i "Heating..."
-    $pmemd_mpi -i heat.in -p ${file_name}.parm7 -c min.rst7 -ref ${file_name}.rst7 -O -o heat.out -e heat.en -inf heat.info -r heat.rst7 -x heat.nc -l heat.log
+    $pmemd_cuda -i heat.in -p ${file_name}.parm7 -c min.rst7 -ref ${file_name}.rst7 -O -o heat.out -e heat.en -inf heat.info -r heat.rst7 -x heat.nc -l heat.log
     echo $i "Pressurising..."
     $pmemd_mpi -i press.in -p ${file_name}.parm7 -c heat.rst7 -ref heat.rst7 -O -o press.out -e press.en -inf press.info -r press.rst7 -x press.nc -l press.log
     echo $i "TI..."
@@ -153,7 +163,7 @@ elif [ $k -eq 0 ] ;
     cp ../${ni}/ti.rst7 press.rst7
     f=$(mpstat |grep "all" | awk '{print $13}')
     
-    $pmemd_cuda -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log &
+    $pmemd_cuda -i ti.in -p ${file_name}.parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log 
 fi    
 #$ni=i save previous i values used as directory name
 ni=$i
