@@ -7,14 +7,14 @@ test folder:
 regor : /home/leos/work/hpk1/fep/fes_setup_amber
 catipiller: /home/leos/hgst/working/regor/cdk/fep/fes_setup_1/test
 test:
-python amber_setup_half.py -i ../_perturbations/pmemd-softcore -o . -np 8 -charge_lambda "0.0, 0.1, 0.2, 0.3, 0.4, 0.5" -vdw_lambda "0.0, 0.1, 0.2, 0.3, 0.4, 0.5"
+python amber_setup_half.py -i ../_perturbations/pmemd-softcore -o . -np 8 -charge_lambda "0.0, 0.1, 0.2, 0.3, 0.4, 0.5" -vdw_lambda "0.0, 0.1, 0.2, 0.3, 0.4, 0.5" -d 1
 kill nohup jobs
 
 ps -aux | grep "sh subm"
 
 export the CUDA device:
 
-export CUDA_VISIBLE_DEVICES="0,1,2"
+export CUDA_VISIBLE_DEVICES="0,1"
 
 c=$(echo "3.4+7/8-(5.94*3.14)" | bc)
 
@@ -136,7 +136,8 @@ pmemd_cuda=$AMBERHOME/bin/pmemd.cuda
 pmemd_mpi="mpirun -np ''' + str(args.number_processor) + ''' $AMBERHOME/bin/pmemd.MPI"
 pmemd=$AMBERHOME/bin/pmemd
 
-''' + "mpino=" + str(args.number_processor)+"\n"
+
+''' + "mpino=" + str(args.number_processor)+"\n"+ 'export CUDA_VISIBLE_DEVICES="'+str(args.device)+'"'+"\n"
 
 sub_sh_end = '''
 #$j the number of folder calculated
@@ -208,11 +209,13 @@ def check_pert_state(each_pert_abs):
     states = {'decharge': False,
               'recharge': False,
               'charge': False,
-              'vdw': False}
+              'vdw': False,
+              'onestep':False}
 
     decharge_file = each_pert_abs + "/decharge.in"
     recharge_file = each_pert_abs + "/recharge.in"
     charge_file = each_pert_abs + "/charge.in"
+    onestep_file = each_pert_abs + "/onestep.in"
     try:
         os.stat(decharge_file)
         states["decharge"] = True
@@ -237,6 +240,13 @@ def check_pert_state(each_pert_abs):
         #print(each_pert_abs, "has vdw")
     except:
         print(each_pert_abs, "has no vdw")
+
+    try:
+        os.stat(onestep_file)
+        states["onestep"] = True
+        #print(each_pert_abs, "has vdw")
+    except:
+        print(each_pert_abs, "has one step")
 
     return states
 
@@ -425,15 +435,24 @@ def main_optimization():
         make_directory(each_pert_out_run_complex)
         make_directory(each_pert_out_run_solvated)
         states = check_pert_state(each_pert_abs)
+        if states["vdw"]:
+            prepare_folder_and_configuration(each_pert_out, each_pert_abs, "vdw", vdw_lambda)
+            copy_system(each_pert_out, each_pert_abs, "vdw", vdw_lambda)
 
-        prepare_folder_and_configuration(each_pert_out, each_pert_abs, "vdw", vdw_lambda)
-        copy_system(each_pert_out, each_pert_abs, "vdw", vdw_lambda)
+            sh_mid_line = generate_sh_middle("vdw", vdw_lambda)
+            sh_file = sub_sh_start + sh_mid_line + sub_sh_end
 
-        sh_mid_line = generate_sh_middle("vdw", vdw_lambda)
-        sh_file = sub_sh_start + sh_mid_line + sub_sh_end
+            write_file(sh_file, each_pert_out_run_complex + "/" + "vdw" + '/submit.sh')
+            write_file(sh_file, each_pert_out_run_solvated + "/" + "vdw" + '/submit.sh')
+        if states["onestep"]:
+            prepare_folder_and_configuration(each_pert_out, each_pert_abs, "onestep", vdw_lambda)
+            copy_system(each_pert_out, each_pert_abs, "onestep", vdw_lambda)
 
-        write_file(sh_file, each_pert_out_run_complex + "/" + "vdw" + '/submit.sh')
-        write_file(sh_file, each_pert_out_run_solvated + "/" + "vdw" + '/submit.sh')
+            sh_mid_line = generate_sh_middle("onestep", vdw_lambda)
+            sh_file = sub_sh_start + sh_mid_line + sub_sh_end
+
+            write_file(sh_file, each_pert_out_run_complex + "/" + "onestep" + '/submit.sh')
+            write_file(sh_file, each_pert_out_run_solvated + "/" + "onestep" + '/submit.sh')
         # make the recharge input
         if states["recharge"]:
             prepare_folder_and_configuration(each_pert_out, each_pert_abs, "recharge", charge_lambda)
@@ -491,6 +510,17 @@ def main_md():
                 if states[each_state]:
                     os.chdir(each_state)
                     if each_state == "vdw":
+                        for each_lambda in vdw_lambda_list:
+                            print (each_lambda.strip())
+                            os.chdir(each_lambda.strip())
+                            cpu_use = 100
+                            while cpu_use >= 80:
+                                time.sleep(60)
+                                cpu_use = psutil.cpu_percent()
+                                print (cpu_use)
+                            submit_cpu(pmemd_mpi=pmemd_mpi, file_name=each_state)
+                            os.chdir("../")
+                    if each_state == "onestep":
                         for each_lambda in vdw_lambda_list:
                             print (each_lambda.strip())
                             os.chdir(each_lambda.strip())
