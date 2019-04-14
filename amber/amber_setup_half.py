@@ -26,6 +26,9 @@ import psutil
 import time
 
 import argparse
+from Bio.PDB import *
+
+from BioIO.utility import Read
 
 parser = argparse.ArgumentParser(description="Main script for setup the simulations of sire")
 
@@ -137,7 +140,7 @@ pmemd_mpi="mpirun -np ''' + str(args.number_processor) + ''' $AMBERHOME/bin/pmem
 pmemd=$AMBERHOME/bin/pmemd
 
 
-''' + "mpino=" + str(args.number_processor)+"\n"+ 'export CUDA_VISIBLE_DEVICES="'+str(args.device)+'"'+"\n"
+''' + "mpino=" + str(args.number_processor) + "\n" + 'export CUDA_VISIBLE_DEVICES="' + str(args.device) + '"' + "\n"
 
 sub_sh_end = '''
 #$j the number of folder calculated
@@ -178,6 +181,16 @@ done
 '''
 
 
+def read_pdb_file(pdb_file):
+    '''
+    :param pdb_file:
+    :return: the structure object from biopython
+    '''
+    parser = PDBParser()
+    structure = parser.get_structure('structure', pdb_file)
+    return structure
+
+
 def make_directory(folder):
     '''
     :param folder:
@@ -210,7 +223,7 @@ def check_pert_state(each_pert_abs):
               'recharge': False,
               'charge': False,
               'vdw': False,
-              'onestep':False}
+              'onestep': False}
 
     decharge_file = each_pert_abs + "/decharge.in"
     recharge_file = each_pert_abs + "/recharge.in"
@@ -219,32 +232,32 @@ def check_pert_state(each_pert_abs):
     try:
         os.stat(decharge_file)
         states["decharge"] = True
-        #print(each_pert_abs, "has decharge")
+        # print(each_pert_abs, "has decharge")
     except:
         print(each_pert_abs, "has no decharge")
     try:
         os.stat(recharge_file)
         states["recharge"] = True
-        #print(each_pert_abs, "has recharge")
+        # print(each_pert_abs, "has recharge")
     except:
         print(each_pert_abs, "has no recharge")
     try:
         os.stat(charge_file)
         states["charge"] = True
-        #print(each_pert_abs, "has charge")
+        # print(each_pert_abs, "has charge")
     except:
         print(each_pert_abs, "has no charge")
     try:
         os.stat(charge_file)
         states["vdw"] = True
-        #print(each_pert_abs, "has vdw")
+        # print(each_pert_abs, "has vdw")
     except:
         print(each_pert_abs, "has no vdw")
 
     try:
         os.stat(onestep_file)
         states["onestep"] = True
-        #print(each_pert_abs, "has vdw")
+        # print(each_pert_abs, "has vdw")
     except:
         print(each_pert_abs, "has one step")
 
@@ -262,17 +275,66 @@ def obtain_ifce_line(original_input, lambda_no):
     return ifce_line
 
 
-def obtain_mask_line(original_input):
+def scmask_lines(original_vdw_pdb, chain_id=0):
+    s = read_pdb_file(original_vdw_pdb)
+    scmask1_list = []
+    scmask2_list = []
+    for c_id, c in enumerate(s[0]):
+        if c_id == chain_id:
+            target_c = c
+        r_1 = target_c[1]
+        r_2 = target_c[2]
+        r_1_atoms = r_1.get_list()
+        r_2_atoms = r_2.get_list()
+        r_1_atom_names = [atom.name for atom in r_1_atoms]
+        r_2_atom_names = [atom.name for atom in r_2_atoms]
+        r_1_length = len(r_1_atoms)
+        r_2_length = len(r_2_atoms)
+        l = max(r_1_length, r_2_length)
+        print(r_1_length, r_2_length)
+        for i in range(l):
+            if i < r_1_length and i < r_2_length:
+                print(i)
+                if r_1_atom_names[i] != r_2_atom_names[i]:
+                    scmask1_list.append(r_1_atom_names[i])
+                    scmask2_list.append(r_2_atom_names[i])
+            if i >= r_1_length and i < r_2_length:
+                scmask2_list.append(r_2_atom_names[i])
+            if i < r_1_length and i >= r_2_length:
+                scmask1_list.append(r_1_atom_names[i])
+    scmask1 = "scmask1='',"
+    scmask2 = "scmask2='',"
+    print(scmask1_list, scmask2_list)
+    if len(scmask1_list) >= 1:
+        scmask1 = "scmask1=':1@"
+        for i in scmask1_list:
+            scmask1 = scmask1 + str(i) + ","
+        scmask1 = scmask1[:-1] + "',"
+    if len(scmask2_list) >= 1:
+        scmask2 = "scmask2=':2@"
+        for i in scmask2_list:
+            scmask2 = scmask2 + str(i) + ","
+        scmask2 = scmask2[:-1] + "',"
+    return scmask1, scmask2
+
+
+def obtain_mask_line(original_input_in, original_vdw_pdb):
     mask_line = ''''''
-    for el in original_input:
+    for el in original_input_in:
         if el[:8] == " timask1":
             mask_line = mask_line + " " + el
-        elif el[:7] == "scmask1":
-            mask_line = mask_line + "  " + el
-        elif el[:7] == "scmask2":
-            mask_line = mask_line + "  " + el
+
         elif el[:8] == " crgmask":
             mask_line = mask_line + " " + el
+
+    scmask_1, scmask_2 = scmask_lines(original_vdw_pdb)
+    mask_line = mask_line + scmask_1 + '\n'
+    mask_line = mask_line + scmask_2 + '\n'
+    #    #Leos update the pdb refered scmask1 and scmask2 herein based on the pdb file
+    #    elif el[:7] == "scmask1":
+    #        mask_line = mask_line + "  " + el
+    #    elif el[:7] == "scmask2":
+    #        mask_line = mask_line + "  " + el
     print("the mask line is:")
     print(mask_line)
     return mask_line
@@ -299,7 +361,11 @@ def prepare_folder_and_configuration(each_pert_out, each_pert_abs, folder_name, 
 
     # read the vdw simulation data
     original_vdw_in = read_file(each_pert_abs + '/complex/' + folder_name + '.in')  # complex and solvated are the same
-    mask_line = obtain_mask_line(original_vdw_in)
+    original_vdw_pdb_in = each_pert_abs + '/complex/' + folder_name + '.pdb'
+
+    # Leos: revise the scmask line herein for the vdw, for one step, no need to do this
+
+    mask_line = obtain_mask_line(original_vdw_in, original_vdw_pdb_in)
     lambda_list = lambda_values.split(",")
 
     vdw_mbar = obtain_ifmbar(lambda_values, lambda_list)
@@ -408,8 +474,9 @@ def generate_sh_middle(folder_name, lambda_values):
 def submit_cpu(pmemd_mpi, file_name):
     command_1 = pmemd_mpi + " -i press.in -p " + file_name + ".parm7 -c heat.rst7 -ref heat.rst7 -O -o press.out -e press.en -inf press.info -r press.rst7 -x press.nc -l press.log"
     command_2 = pmemd_mpi + " -i ti.in -p " + file_name + ".parm7 -c press.rst7 -ref press.rst7 -O -o ti.out -e ti.en -inf ti.info -r ti.rst7 -x ti.nc -l ti.log"
-    write_file(command_1+"\n"+command_2, "submit_cpu.sh")
+    write_file(command_1 + "\n" + command_2, "submit_cpu.sh")
     os.system("nohup sh submit_cpu.sh &")
+
 
 def main_optimization():
     collection_sub_sh = '''#!/bin/sh\n'''
@@ -511,57 +578,57 @@ def main_md():
                     os.chdir(each_state)
                     if each_state == "vdw":
                         for each_lambda in vdw_lambda_list:
-                            print (each_lambda.strip())
+                            print(each_lambda.strip())
                             os.chdir(each_lambda.strip())
                             cpu_use = 100
                             while cpu_use >= 80:
                                 time.sleep(60)
                                 cpu_use = psutil.cpu_percent()
-                                print (cpu_use)
+                                print(cpu_use)
                             submit_cpu(pmemd_mpi=pmemd_mpi, file_name=each_state)
                             os.chdir("../")
                     if each_state == "onestep":
                         for each_lambda in vdw_lambda_list:
-                            print (each_lambda.strip())
+                            print(each_lambda.strip())
                             os.chdir(each_lambda.strip())
                             cpu_use = 100
                             while cpu_use >= 80:
                                 time.sleep(60)
                                 cpu_use = psutil.cpu_percent()
-                                print (cpu_use)
+                                print(cpu_use)
                             submit_cpu(pmemd_mpi=pmemd_mpi, file_name=each_state)
                             os.chdir("../")
                     elif each_state == "charge":
                         for each_lambda in charge_lambda_list:
-                            print (each_lambda.strip())
+                            print(each_lambda.strip())
                             os.chdir(each_lambda.strip())
                             cpu_use = 100
                             while cpu_use >= 80:
                                 time.sleep(60)
                                 cpu_use = psutil.cpu_percent()
-                                print (cpu_use)
+                                print(cpu_use)
                             submit_cpu(pmemd_mpi=pmemd_mpi, file_name=each_state)
                             os.chdir("../")
                     elif each_state == "recharge":
                         for each_lambda in charge_lambda_list:
-                            print (each_lambda.strip())
+                            print(each_lambda.strip())
                             os.chdir(each_lambda.strip())
                             cpu_use = 100
                             while cpu_use >= 80:
                                 time.sleep(60)
                                 cpu_use = psutil.cpu_percent()
-                                print (cpu_use)
+                                print(cpu_use)
                             submit_cpu(pmemd_mpi=pmemd_mpi, file_name=each_state)
                             os.chdir("../")
                     elif each_state == "decharge":
                         for each_lambda in charge_lambda_list:
-                            print (each_lambda.strip())
+                            print(each_lambda.strip())
                             os.chdir(each_lambda.strip())
                             cpu_use = 100
                             while cpu_use >= 80:
                                 time.sleep(60)
                                 cpu_use = psutil.cpu_percent()
-                                print (cpu_use)
+                                print(cpu_use)
                             submit_cpu(pmemd_mpi=pmemd_mpi, file_name=each_state)
                             os.chdir("../")
                     os.chdir("../")
