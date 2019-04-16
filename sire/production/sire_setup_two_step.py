@@ -34,7 +34,7 @@ def vdw_name_LJ(vdw_file):
             initial_LJ = all_lines[el_no+3].split()[1:]
             final_LJ = all_lines[el_no+4].split()[1:]
             atom_lj_dic[el.split()[1]]=[initial_LJ,final_LJ]
-    return all_lj_dic
+    return atom_lj_dic
 
 
 def decharge_file(input_file, output_file, vdw_file):
@@ -256,20 +256,62 @@ def complex_recharge(each_pert_abs, script_folder, charge_state, each_pert_outpu
         recharge_file_output = "bound/input/MORPH.pert"
         decharge_file(charge_file_input, recharge_file_output)
 
+def copy_file(solvation_complex, calculation_format, script_folcer, each_pert_output_run):
+    pass
 
-def check_charge_state(each_pert_abs):
+
+
+
+def check_pert_state(each_pert_abs):
+    states = {'decharge': False,
+              'recharge': False,
+              'vdw': False,
+              'onestep': False,
+              'charge':False}
+
     decharge_file = each_pert_abs + "/MORPH.decharge.pert"
+    recharge_file = each_pert_abs + "/MORPH.recharge.pert"
+    charge_file = each_pert_abs + "/MORPH.charge.pert"
+    onestep_file = each_pert_abs + "MORPH.onestep.pert"
+    vdw_file = each_pert_abs+"/MORPH.vdw.pert"
     try:
         os.stat(decharge_file)
-        return True
+        states["decharge"] = True
+        # print(each_pert_abs, "has decharge")
     except:
-        return False
+        print(each_pert_abs, "has no decharge")
+    try:
+        os.stat(recharge_file)
+        states["recharge"] = True
+        # print(each_pert_abs, "has recharge")
+    except:
+        print(each_pert_abs, "has no recharge")
+    try:
+        os.stat(charge_file)
+        states["charge"] = True
+        # print(each_pert_abs, "has charge")
+    except:
+        print(each_pert_abs, "has no charge")
+    try:
+        os.stat(vdw_file)
+        states["vdw"] = True
+        # print(each_pert_abs, "has vdw")
+    except:
+        print(each_pert_abs, "has no vdw")
+
+    try:
+        os.stat(onestep_file)
+        states["onestep"] = True
+        # print(each_pert_abs, "has vdw")
+    except:
+        print(each_pert_abs, "has one step")
+    return states
 
 
-def make_run_folder(each_pert_out, run_no):
-    each_pert_output_run = each_pert_out + "/run%003d" % run_no
-    each_pert_out_run_free = each_pert_out_run + "/free"
-    each_pert_out_run_bound = each_pert_out_run + "/bound"
+def make_run_folder(each_pert_out, run_type):
+    each_pert_output_run = each_pert_out + run_type
+    each_pert_out_run_free = each_pert_output_run + "/complex"
+    each_pert_out_run_bound = each_pert_output_run + "/solvated"
     each_pert_out_run_free_input = each_pert_out_run_free + "/input"
     each_pert_out_run_free_output = each_pert_out_run_free + "/output"
     each_pert_out_run_bound_input = each_pert_out_run_bound + "/input"
@@ -292,13 +334,19 @@ if __name__():
     all_pert_folder = os.listdir(input_folder)
     for each_pert in all_pert_folder:
         each_pert_abs = os.path.abspath(each_pert)
-        charge_state = check_charge_state(each_pert_abs)
+        charge_state = check_pert_state(each_pert_abs)
         each_pert_out = output_folder + "/" + each_pert
         make_directory(each_pert_out)
 
         """
         copy the input for run_no 0: the decharge process
         """
+        if charge_state["decharge"]:
+            each_pert_output_run = make_run_folder(each_pert_out,"decharge")
+
+
+
+
         if charge_state and args.convert:
             run_no = 0
             each_pert_output_run = make_run_folder(each_pert_out, run_no)
