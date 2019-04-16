@@ -10,6 +10,8 @@ do
 
 echo "lambda is: " $lam
 
+cd output
+
 mkdir lambda-$lam
 cd lambda-$lam
 somd-freenrg -C ../../input/sim_min.cfg -l $lam -p CUDA
@@ -54,6 +56,6 @@ somd-freenrg -C ../../input/sim_md.cfg -l $lam -p CUDA
 #    cp ../lambda-$last_lam/sim_restart.s3 .
 #    somd-freenrg -C ../../input/sim_md.cfg -l $lam -p CUDA
 #fi
-cd ..
+cd ../../
 
 done
