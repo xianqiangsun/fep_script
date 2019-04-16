@@ -15,7 +15,7 @@ cd lambda-$lam
 somd-freenrg -C ../../input/sim_min.cfg -l $lam -p CUDA
 #rm -rf *.dat
 somd-freenrg -C ../../input/sim_nvt_1.cfg -l $lam -p CUDA
-#rm -rf *.dat
+rm -rf *.dat
 somd-freenrg -C ../../input/sim_nvt_2.cfg -l $lam -p CUDA
 #rm -rf *.dat
 somd-freenrg -C ../../input/sim_nvt_3.cfg -l $lam -p CUDA
@@ -29,9 +29,10 @@ somd-freenrg -C ../../input/sim_npt_1.cfg -l $lam -p CUDA
 somd-freenrg -C ../../input/sim_npt_2.cfg -l $lam -p CUDA
 #rm -rf *dat
 somd-freenrg -C ../../input/sim_md.cfg -l $lam -p CUDA
+#cd lambda-$lam
 #if [[ $lam == 0.0 ]]
 #    then
-#    cp ../../../../run001/free/output/lambda-1.0/sim_restart.s3 .
+#    cp ../../../../run001/bound/output/lambda-1.0/sim_restart.s3 .
 #    #somd-freenrg -C ../../input/sim_min.cfg -l $lam -p CUDA
 #    #rm -rf *.dat
 #    #somd-freenrg -C ../../input/sim_nvt_1.cfg -l $lam -p CUDA

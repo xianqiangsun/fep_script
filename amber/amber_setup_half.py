@@ -327,14 +327,14 @@ def obtain_mask_line(original_input_in, original_vdw_pdb):
         elif el[:8] == " crgmask":
             mask_line = mask_line + " " + el
 
-    scmask_1, scmask_2 = scmask_lines(original_vdw_pdb)
-    mask_line = mask_line + scmask_1 + '\n'
-    mask_line = mask_line + scmask_2 + '\n'
-    #    #Leos update the pdb refered scmask1 and scmask2 herein based on the pdb file
-    #    elif el[:7] == "scmask1":
-    #        mask_line = mask_line + "  " + el
-    #    elif el[:7] == "scmask2":
-    #        mask_line = mask_line + "  " + el
+    #scmask_1, scmask_2 = scmask_lines(original_vdw_pdb)
+    #mask_line = mask_line + scmask_1 + '\n'
+    #mask_line = mask_line + scmask_2 + '\n'
+        #Leos update the pdb refered scmask1 and scmask2 herein based on the pdb file
+        elif el[:7] == "scmask1":
+            mask_line = mask_line + "  " + el
+        elif el[:7] == "scmask2":
+            mask_line = mask_line + "  " + el
     print("the mask line is:")
     print(mask_line)
     return mask_line

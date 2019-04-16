@@ -4,7 +4,6 @@
 
 lamvals=( 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 )
 
-#export OPENMM_PLUGIN_DIR=/home/leos/opt/sire_201901/lib/plugins
 export OPENMM_PLUGIN_DIR=$SIREHOME/lib/plugins
 for lam in "${lamvals[@]}"
 do

@@ -197,7 +197,7 @@ for directory in dirlist:
                 "cp %s/ligand.flex free/input/MORPH.flex" % inputfolder,
                 "cp %s/scripts/sim_*.cfg free/input/" % basedir,
                 "cp %s/scripts/cluster.sh free/" % basedir,
-                "cp %s/scripts/serial_vdw_free.sh free/serial.sh" % basedir
+                "cp %s/scripts/serial_vdw_solvated.sh free/serial.sh" % basedir
                 ]
         for cmd in cmds:
             os.system(cmd)
@@ -223,7 +223,7 @@ for directory in dirlist:
                 "cp %s/ligand.flex bound/input/MORPH.flex" % inputfolder,
                 "cp %s/scripts/sim_*.cfg bound/input/" % basedir,
                 "cp %s/scripts/cluster.sh bound/" % basedir,
-                "cp %s/scripts/serial_vdw_bound.sh bound/serial.sh" % basedir
+                "cp %s/scripts/serial_vdw_complex.sh bound/serial.sh" % basedir
                 ]
         for cmd in cmds:
             os.system(cmd)

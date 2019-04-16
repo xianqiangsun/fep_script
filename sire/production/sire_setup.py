@@ -258,7 +258,7 @@ def solvated_vdw(each_pert_abs, script_folder, charge_state, each_pert_output_ru
             "cp %s/ligand.flex free/input/MORPH.flex" % each_pert_abs,
             "cp %s/sim_*.cfg free/input/" % script_folder,
             "cp %s/cluster.sh free/" % script_folder,
-            "cp %s/serial_vdw_free.sh free/serial.sh" % script_folder
+            "cp %s/serial_vdw_solvated.sh free/serial.sh" % script_folder
             ]
     for cmd in cmds:
         os.system(cmd)
@@ -292,7 +292,7 @@ def complex_vdw(each_pert_abs, script_folder, charge_state, each_pert_output_run
             "cp %s/ligand.flex bound/input/MORPH.flex" % each_pert_abs,
             "cp %s/sim_*.cfg bound/input/" % script_folder,
             "cp %s/cluster.sh bound/" % script_folder,
-            "cp %s/serial_vdw_bound.sh bound/serial.sh" % script_folder
+            "cp %s/serial_vdw_complex.sh bound/serial.sh" % script_folder
             ]
     for cmd in cmds:
         os.system(cmd)
@@ -327,7 +327,7 @@ def solvated_recharge(each_pert_abs, script_folder, charge_state, each_pert_outp
             "cp %s/ligand.flex free/input/MORPH.flex" % each_pert_abs,
             "cp %s/sim_*.cfg free/input/" % script_folder,
             "cp %s/cluster.sh free/" % script_folder,
-            "cp %s/serial_recharge_free.sh free/serial.sh" % script_folder
+            "cp %s/serial_recharge_solvated.sh free/serial.sh" % script_folder
             ]
     for cmd in cmds:
         os.system(cmd)
@@ -361,7 +361,7 @@ def complex_recharge(each_pert_abs, script_folder, charge_state, each_pert_outpu
             "cp %s/ligand.flex bound/input/MORPH.flex" % each_pert_abs,
             "cp %s/sim_*.cfg bound/input/" % script_folder,
             "cp %s/cluster.sh bound/" % script_folder,
-            "cp %s/serial_recharge_bound.sh bound/serial.sh" % script_folder
+            "cp %s/serial_recharge_complex.sh bound/serial.sh" % script_folder
             ]
     for cmd in cmds:
         os.system(cmd)
