@@ -1,6 +1,6 @@
 """
 application
-python sire_setup_two_step.py -i ../_pert/sire -s ../script -o output_folder -c False -sub submit,sh
+python sire_setup_two_step.py -i ../_perturbations/sire -s scripts -o sire -c false -sub submit,sh
 """
 
 import os
