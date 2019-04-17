@@ -1,3 +1,8 @@
+"""
+application
+python sire_setup_two_step.py -i ../_pert/sire -s ../script -o output_folder -c False -sub submit,sh
+"""
+
 import os
 import sys
 import argparse
@@ -9,8 +14,39 @@ parser = argparse.ArgumentParser(description="Main script for setup the simulati
 parser.add_argument('-i', dest='input_folder', default='_perturb', help="the input file for the sire folder")
 parser.add_argument('-s', dest='script_folder', default="script", help="the input script file for the sire folder")
 parser.add_argument('-o', dest='output_folder', default='sire')
+parser.add_argument('-sub', dest='submit', default='submit.sh')
 parser.add_argument('-c', dest='convert', default=True)
 args = parser.parse_args()
+
+submit_lines = """
+#!/bin/bash
+
+for i in $(ls -d */);
+do
+    echo $i;
+    cd $i;
+    for j in $(ls -d */);
+    do
+        echo $j;
+        cd $j;
+        for k in $(ls -d */);
+        do
+            echo $k;
+            cd $k;
+            sh serial.sh;
+            cd ../;
+        done
+    cd ../;
+    done
+cd ../;
+done
+"""
+
+def write_file(all_lines, output_file):
+    a = open(output_file, "w")
+    for el in all_lines:
+        a.writelines(el)
+    a.close()
 
 
 def make_directory(folder):
@@ -36,12 +72,13 @@ def vdw_name_LJ(vdw_file):
             final_LJ = all_lines[el_no + 4].split()[1:]
             atom_lj_dic[el.split()[1]] = [initial_LJ, final_LJ]
     return atom_lj_dic
-
-
+'''
+#======================================================
+#not converting the files anymore
 def decharge_file(input_file, output_file, vdw_file):
     """
-    :param input_file: input file for the charge to generate decharge
-    :return: the de charged file
+    #:param input_file: input file for the charge to generate decharge
+    #:return: the de charged file
     """
     all_lj_dic = vdw_name_LJ(vdw_file)
     a = open(input_file, 'r')
@@ -62,8 +99,8 @@ def decharge_file(input_file, output_file, vdw_file):
 
 def recharge_file(input_file, output_file):
     """
-    :param input_file: input file for the charge to generate decharge
-    :return: the de charged file
+    #:param input_file: input file for the charge to generate decharge
+    #:return: the de charged file
     """
     a = open(input_file, 'r')
     out_f = open(output_file, "w")
@@ -77,8 +114,8 @@ def recharge_file(input_file, output_file):
 
 def pert_vdw_file(input_file, output_file):
     """
-    :param input_file: input file for the charge to generate decharge
-    :return: the de charged file
+    #:param input_file: input file for the charge to generate decharge
+    #:return: the de charged file
     """
     a = open(input_file, 'r')
     out_f = open(output_file, "w")
@@ -95,11 +132,11 @@ def pert_vdw_file(input_file, output_file):
 
 def solvated_decharge(each_pert_abs, script_folder, charge_state, each_pert_output_run):
     """
-    :param each_pert_abs: the absolute path of each pert generated from FESetup
-    :param script_folder: the input script and simulation configuration files
-    :param charge_state: whether the ligand is recharge or decharged
-    :param each_pert_output_run: the output run output folder
-    :return:
+    #:param each_pert_abs: the absolute path of each pert generated from FESetup
+    #:param script_folder: the input script and simulation configuration files
+    #:param charge_state: whether the ligand is recharge or decharged
+    #:param each_pert_output_run: the output run output folder
+    #:return:
     """
     os.chdir(each_pert_output_run)
     cmds = ["cp %s/solvated/solvated.parm7 free/input/SYSTEM.top" % each_pert_abs,
@@ -124,10 +161,10 @@ def solvated_decharge(each_pert_abs, script_folder, charge_state, each_pert_outp
 
 def complex_decharge(each_pert_abs, script_folder, charge_state, each_pert_output_run):
     """
-    :param each_pert_abs: the absolute path of each pert generated from FESetup
-    :param script_folder: the input script and simulation configuration files
-    :param charge_state: whether the ligand is recharge or decharged
-    :param each_pert_output_run: the output run output folder
+    #:param each_pert_abs: the absolute path of each pert generated from FESetup
+    #:param script_folder: the input script and simulation configuration files
+    #:param charge_state: whether the ligand is recharge or decharged
+    #:param each_pert_output_run: the output run output folder
     """
     os.chdir(each_pert_output_run)
     cmds = ["cp %s/complex/solvated.parm7 bound/input/SYSTEM.top" % each_pert_abs,
@@ -257,7 +294,7 @@ def complex_recharge(each_pert_abs, script_folder, charge_state, each_pert_outpu
         charge_file_input = each_pert_abs + "/MORPH.charge.pert"
         recharge_file_output = "bound/input/MORPH.pert"
         decharge_file(charge_file_input, recharge_file_output)
-
+'''
 
 def copy_file(each_pert_abs, solvation_complex, calculation_format, script_folder, each_pert_output_run):
     """
@@ -351,6 +388,8 @@ if __name__ == "__main__":
     input_folder = os.path.abspath(args.input_folder)
     script_folder = os.path.abspath(args.script_folder)
     output_folder = os.path.abspath(args.output_folder)
+    output_submit = output_folder+"/"+args.submit
+    write_file(submit_lines, output_submit)
     make_directory(output_folder)
     all_pert_folder = os.listdir(input_folder)
     for each_pert in all_pert_folder:
