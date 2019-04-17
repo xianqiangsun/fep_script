@@ -1,6 +1,6 @@
 """
 application
-python sire_setup_two_step.py -i ../_perturbations/sire -s scripts -o sire -c false -sub submit,sh
+python sire_setup_two_step.py -i ../_perturbations/sire -s scripts -o sire -c false -sub submit.sh
 """
 
 import os
@@ -313,7 +313,7 @@ def copy_file(each_pert_abs, solvation_complex, calculation_format, script_folde
         "cp " + each_pert_abs + "/ligand.flex " + solvation_complex + "/input/MORPH.flex",
         "cp " + script_folder + "/sim_* " + solvation_complex + "/input/",
         "cp " + script_folder + "/cluster.sh " + solvation_complex + "/",
-        "cp " + script_folder + "/serial_" + calculation_format  + ".sh "+solvation_complex+"/serial.sh",
+        "cp " + script_folder + "/serial.sh "+solvation_complex+"/serial.sh",
         "cp " + each_pert_abs + "/MORPH." + calculation_format + ".pert " + solvation_complex + "/input/MORPH.pert"]
     for cmd in cmds:
         print(cmd)
@@ -389,8 +389,8 @@ if __name__ == "__main__":
     script_folder = os.path.abspath(args.script_folder)
     output_folder = os.path.abspath(args.output_folder)
     output_submit = output_folder+"/"+args.submit
-    write_file(submit_lines, output_submit)
     make_directory(output_folder)
+    write_file(submit_lines, output_submit)
     all_pert_folder = os.listdir(input_folder)
     for each_pert in all_pert_folder:
         each_pert_abs = os.path.abspath(input_folder)+"/"+each_pert

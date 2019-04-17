@@ -7,6 +7,7 @@ lamvals=( 0.0 0.1 0.2 0.3 0.4 0.6 0.7 0.8 0.9 1.0 )
 
 export OPENMM_PLUGIN_DIR=$SIREHOME/lib/plugins
 
+cd output
 mkdir lambda-0.5
 cd lambda-0.5
 somd-freenrg -C ../../input/sim_min.cfg -l $lam -p CUDA
