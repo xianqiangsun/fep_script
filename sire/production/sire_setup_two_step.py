@@ -1,6 +1,6 @@
 """
 application
-python sire_setup_two_step.py -i ../_perturbations/sire -s scripts -o sire -c false -sub submit.sh
+python sire_setup_two_step.py -i ../_perturbations/sire -s scripts -o sire -c false -sub submit.sh -d 0
 """
 
 import os
@@ -16,11 +16,11 @@ parser.add_argument('-s', dest='script_folder', default="script", help="the inpu
 parser.add_argument('-o', dest='output_folder', default='sire')
 parser.add_argument('-sub', dest='submit', default='submit.sh')
 parser.add_argument('-c', dest='convert', default=True)
+parser.add_argument('-d', dest='device', default="0, 1", help="the available device number for the simulations")
 args = parser.parse_args()
 
 submit_lines = """
-#!/bin/bash
-
+#!/bin/bash"""+'\n'+'export CUDA_VISIBLE_DEVICES="' + str(args.device) + '"' + "\n"+"""
 for i in $(ls -d */);
 do
     echo $i;
