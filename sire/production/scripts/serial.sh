@@ -38,7 +38,6 @@ for lam in "${lamvals[@]}"
     somd-freenrg -C ../../input/sim_nvt_1.cfg -l $lam -p CUDA
     somd-freenrg -C ../../input/sim_npt_2.cfg -l $lam -p CUDA
     rm -rf traj*
-    rm -rf SYSTEM*
     rm -rf *dat
     rm -rf gradients*
     somd-freenrg -C ../../input/sim_md.cfg -l $lam -p CUDA
