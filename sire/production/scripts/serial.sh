@@ -14,8 +14,6 @@ somd-freenrg -C ../../input/sim_min.cfg -l $mid -p CUDA
 somd-freenrg -C ../../input/sim_nvt_1.cfg -l $mid -p CUDA
 somd-freenrg -C ../../input/sim_npt_2.cfg -l $mid -p CUDA
 cp sim_restart.s3 ../sim_restart.s3.npt
-somd-freenrg -C ../../input/sim_md.cfg -l $mid -p CUDA
-cp sim_restart.s3 ../sim_restart.s3.npt
 cd ..
 rm -rf lambda-$mid
 
