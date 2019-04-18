@@ -33,7 +33,7 @@ for lam in "${lamvals[@]}"
     do
     echo "lambda is: " $lam
     mkdir lambda-$lam
-    cd lambda-$lm
+    cd lambda-$lam
     somd-freenrg -C ../../input/sim_min.cfg -l $lam -p CUDA
     somd-freenrg -C ../../input/sim_nvt_1.cfg -l $lam -p CUDA
     somd-freenrg -C ../../input/sim_npt_2.cfg -l $lam -p CUDA
