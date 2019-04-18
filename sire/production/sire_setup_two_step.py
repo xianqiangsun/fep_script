@@ -330,7 +330,7 @@ def check_pert_state(each_pert_abs):
     decharge_file = each_pert_abs + "/MORPH.decharge.pert"
     recharge_file = each_pert_abs + "/MORPH.recharge.pert"
     charge_file = each_pert_abs + "/MORPH.charge.pert"
-    onestep_file = each_pert_abs + "MORPH.onestep.pert"
+    onestep_file = each_pert_abs + "/MORPH.onestep.pert"
     vdw_file = each_pert_abs + "/MORPH.vdw.pert"
     try:
         os.stat(decharge_file)
@@ -362,7 +362,7 @@ def check_pert_state(each_pert_abs):
         states["onestep"] = True
         # print(each_pert_abs, "has vdw")
     except:
-        print(each_pert_abs, "has one step")
+        print(each_pert_abs, "has no step")
     return states
 
 
