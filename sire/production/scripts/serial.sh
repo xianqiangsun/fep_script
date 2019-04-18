@@ -34,7 +34,7 @@ for lam in "${lamvals[@]}"
     echo "lambda is: " $lam
     mkdir lambda-$lam
     cd lambda-$lam
-    cp ../lambda-$lam/sim_restart.s3.npt sim_restart.s3
+    cp ../sim_restart.s3.npt sim_restart.s3
     somd-freenrg -C ../../input/sim_md.cfg -l $lam -p CUDA
     cd ..
     done
