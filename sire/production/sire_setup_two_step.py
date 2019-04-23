@@ -1,6 +1,9 @@
 """
 application
 python sire_setup_two_step.py -i ../_perturbations/sire -s scripts -o sire -c false -sub submit.sh -d 0
+vmd lambdas = 0.000  0.005  0.071  0.137  0.203  0.269  0.335  0.401  0.467  0.533  0.599 0.665  0.731  0.797 0.863 0.929 0.995 1.0
+charge lambdas = 0.000 0.137 0.335 0.533 0.731 0.863 1.0
+
 """
 
 import os
@@ -17,10 +20,361 @@ parser.add_argument('-o', dest='output_folder', default='sire')
 parser.add_argument('-sub', dest='submit', default='submit.sh')
 parser.add_argument('-c', dest='convert', default=True)
 parser.add_argument('-d', dest='device', default="0, 1", help="the available device number for the simulations")
+parser.add_argument('-vdw', dest='vmd_lambda',
+                    default="0.000 0.005 0.071 0.137 0.203 0.269 0.335 0.401 0.467 0.533 0.599 0.665 0.731 0.797 0.863 0.929 0.995 1.000")
+parser.add_argument('-charge', dest='charge_lambda', default="0.000 0.137 0.335 0.533 0.665 0.797 0.929 1.000")
+
 args = parser.parse_args()
 
+sim_min = """
+#Input file
+morphfile = ../../input/MORPH.pert
+topfile= ../../input/SYSTEM.parm7
+crdfile= ../../input/SYSTEM.rst7
+buffered coordinates frequency = 500
+save coordinates = True
+constraint = hbonds-notperturbed
+hydrogen mass repartitioning factor = 1.0
+cutoff type = cutoffperiodic
+cutoff distance = 10*angstrom
+barostat = False
+andersen = False
+energy frequency = 250
+precision = mixed
+minimise = True
+minimise maximum iterations = 2500
+equilibrate = False
+equilibration iterations = 10000
+equilibration timestep = 0.1 * femtosecond
+center solute = True
+reaction field dielectric = 78.3
+minimal coordinate saving = True
+random seed = None
+lambda array =  0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
+"""
+
+sim_md = """
+#Input file
+morphfile = ../../input/MORPH.pert
+topfile= ../../input/SYSTEM.parm7
+crdfile= ../../input/SYSTEM.rst7
+nmoves = 10000
+ncycles = 75
+buffered coordinates frequency = 5000
+save coordinates = True
+timestep = 1 * femtosecond
+constraint = hbonds-notperturbed
+hydrogen mass repartitioning factor = 1.0
+cutoff type = cutoffperiodic
+cutoff distance = 10*angstrom
+barostat = True
+andersen = True
+energy frequency = 250
+precision = mixed
+minimise = False
+use restraints = False
+heavy mass restraint = 1.10
+restraint force constant = 100
+equilibrate = False
+equilibration iterations = 5000
+center solute = True
+reaction field dielectric = 78.3
+minimal coordinate saving = True
+random seed = 100
+lambda array =  0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
+"""
+
+sim_nvt_1 = """
+#Input file
+morphfile = ../../input/MORPH.pert
+topfile= ../../input/SYSTEM.parm7
+crdfile= ../../input/SYSTEM.rst7
+nmoves = 10000
+ncycles = 1
+buffered coordinates frequency = 10000
+save coordinates = True
+timestep = 0.5 * femtosecond
+constraint = hbonds-notperturbed
+hydrogen mass repartitioning factor = 1.0
+cutoff type = cutoffperiodic
+cutoff distance = 10*angstrom
+barostat = False
+andersen = True
+energy frequency = 250
+precision = mixed
+minimise = False
+use restraints = True
+heavy mass restraint = 1.10
+restraint force constant = 10
+temperature = -263.15 * celsius
+equilibrate = False
+equilibration iterations = 5000
+center solute = True
+reaction field dielectric = 78.3
+minimal coordinate saving = True
+random seed = 100
+lambda array =  0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
+"""
+sim_nvt_2 = """
+#Input file
+morphfile = ../../input/MORPH.pert
+topfile= ../../input/SYSTEM.parm7
+crdfile= ../../input/SYSTEM.rst7
+nmoves = 10000
+ncycles = 2
+buffered coordinates frequency = 5000
+save coordinates = True
+timestep = 0.5 * femtosecond
+constraint = hbonds-notperturbed
+hydrogen mass repartitioning factor = 1.0
+cutoff type = cutoffperiodic
+cutoff distance = 10*angstrom
+barostat = False
+andersen = True
+energy frequency = 250
+precision = mixed
+minimise = False
+use restraints = True
+heavy mass restraint = 1.10
+restraint force constant = 10
+temperature = -223.15 * celsius
+equilibrate = False
+equilibration iterations = 5000
+center solute = True
+reaction field dielectric = 78.3
+minimal coordinate saving = True
+random seed = None
+lambda array =  0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
+"""
+sim_nvt_3 = """
+#Input file
+morphfile = ../../input/MORPH.pert
+topfile= ../../input/SYSTEM.parm7
+crdfile= ../../input/SYSTEM.rst7
+nmoves = 10000
+ncycles = 2
+buffered coordinates frequency = 5000
+save coordinates = True
+timestep = 0.5 * femtosecond
+constraint = hbonds-notperturbed
+hydrogen mass repartitioning factor = 1.0
+cutoff type = cutoffperiodic
+cutoff distance = 10*angstrom
+barostat = False
+andersen = True
+energy frequency = 250
+precision = mixed
+minimise = False
+use restraints = True
+heavy mass restraint = 1.10
+restraint force constant = 10
+temperature = -123.15 * celsius
+equilibrate = False
+equilibration iterations = 5000
+center solute = True
+reaction field dielectric = 78.3
+minimal coordinate saving = True
+random seed = 100
+lambda array =  0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
+"""
+sim_nvt_4 = """
+#Input file
+morphfile = ../../input/MORPH.pert
+topfile= ../../input/SYSTEM.parm7
+crdfile= ../../input/SYSTEM.rst7
+nmoves = 10000
+ncycles = 2
+buffered coordinates frequency = 5000
+save coordinates = True
+timestep = 0.5 * femtosecond
+constraint = hbonds-notperturbed
+hydrogen mass repartitioning factor = 1.0
+cutoff type = cutoffperiodic
+cutoff distance = 10*angstrom
+barostat = False
+andersen = True
+energy frequency = 250
+precision = mixed
+minimise = False
+use restraints = True
+heavy mass restraint = 1.10
+restraint force constant = 10
+temperature = 23.15 * celsius
+equilibrate = False
+equilibration iterations = 5000
+center solute = True
+reaction field dielectric = 78.3
+minimal coordinate saving = True
+random seed = 100
+lambda array =  0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
+"""
+sim_nvt_5 = """
+#Input file
+morphfile = ../../input/MORPH.pert
+topfile= ../../input/SYSTEM.parm7
+crdfile= ../../input/SYSTEM.rst7
+nmoves = 10000
+ncycles = 5
+buffered coordinates frequency = 5000
+save coordinates = True
+timestep = 1 * femtosecond
+constraint = hbonds-notperturbed
+hydrogen mass repartitioning factor = 1.0
+cutoff type = cutoffperiodic
+cutoff distance = 10*angstrom
+barostat = False
+andersen = True
+energy frequency = 250
+precision = mixed
+minimise = False
+use restraints = False
+heavy mass restraint = 1.10
+restraint force constant = 10
+equilibrate = False
+equilibration iterations = 5000
+center solute = True
+reaction field dielectric = 78.3
+minimal coordinate saving = True
+random seed = 100
+lambda array =  0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
+"""
+
+sim_npt_1 = """
+#Input file
+morphfile = ../../input/MORPH.pert
+topfile= ../../input/SYSTEM.parm7
+crdfile= ../../input/SYSTEM.rst7
+nmoves = 10000
+ncycles = 10
+buffered coordinates frequency = 5000
+save coordinates = True
+timestep = 1 * femtosecond
+constraint = hbonds-notperturbed
+hydrogen mass repartitioning factor = 1.0
+cutoff type = cutoffperiodic
+cutoff distance = 10*angstrom
+barostat = True
+andersen = True
+energy frequency = 250
+precision = mixed
+minimise = False
+use restraints = False
+heavy mass restraint = 1.10
+restraint force constant = 10
+equilibrate = False
+equilibration iterations = 5000
+center solute = True
+reaction field dielectric = 78.3
+minimal coordinate saving = True
+random seed = 100
+lambda array =  0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
+"""
+
+sim_npt_2 = """
+#Input file
+morphfile = ../../input/MORPH.pert
+topfile= ../../input/SYSTEM.parm7
+crdfile= ../../input/SYSTEM.rst7
+nmoves = 10000
+ncycles = 20
+buffered coordinates frequency = 5000
+save coordinates = True
+timestep = 1 * femtosecond
+constraint = hbonds-notperturbed
+hydrogen mass repartitioning factor = 1.0
+cutoff type = cutoffperiodic
+cutoff distance = 10*angstrom
+barostat = True
+andersen = True
+energy frequency = 250
+precision = mixed
+minimise = False
+use restraints = False
+heavy mass restraint = 1.10
+restraint force constant = 10
+equilibrate = False
+equilibration iterations = 5000
+center solute = True
+reaction field dielectric = 78.3
+minimal coordinate saving = True
+random seed = 100
+lambda array =  0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
+"""
+
+sim_md = """
+#Input file
+morphfile = ../../input/MORPH.pert
+topfile= ../../input/SYSTEM.parm7
+crdfile= ../../input/SYSTEM.rst7
+nmoves = 10000
+ncycles = 75
+buffered coordinates frequency = 5000
+save coordinates = True
+timestep = 1 * femtosecond
+constraint = hbonds-notperturbed
+hydrogen mass repartitioning factor = 1.0
+cutoff type = cutoffperiodic
+cutoff distance = 10*angstrom
+barostat = True
+andersen = True
+energy frequency = 250
+precision = mixed
+minimise = False
+use restraints = False
+heavy mass restraint = 1.10
+restraint force constant = 100
+equilibrate = False
+equilibration iterations = 5000
+center solute = True
+reaction field dielectric = 78.3
+minimal coordinate saving = True
+random seed = 100
+lambda array =  0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
+"""
+serial_sh_1 = """
+#!/bin/bash
+# Warning! Script executing simulations serially. Very slow and avoid doing this at ALL costs!
+# You may have to explicitly set your OpenMMplugins directory!
+
+#export gpu
+export OPENMM_PLUGIN_DIR=$SIREHOME/lib/plugins
+cd output
+
+# do the equilibration at lamda=0.5
+#cp sim_restart.s3 ../sim_restart.s3.npt
+#cd ..
+#rm -rf lambda-$mid
+"""
+
+serial_sh_2 = """
+for lam in "${lamvals[@]}"
+do
+echo "lambda is: " $lam
+mkdir lambda-$lam
+cd lambda-$lam
+somd-freenrg -C ../../input/sim_min.cfg -l $lam -p CUDA
+#rm -rf *.dat
+somd-freenrg -C ../../input/sim_nvt_1.cfg -l $lam -p CUDA
+#rm -rf *.dat
+somd-freenrg -C ../../input/sim_nvt_2.cfg -l $lam -p CUDA
+#rm -rf *.dat
+somd-freenrg -C ../../input/sim_nvt_3.cfg -l $lam -p CUDA
+#rm -rf *.dat
+somd-freenrg -C ../../input/sim_nvt_4.cfg -l $lam -p CUDA
+#rm -rf *.dat
+somd-freenrg -C ../../input/sim_nvt_5.cfg -l $lam -p CUDA
+#rm -rf *.dat
+somd-freenrg -C ../../input/sim_npt_1.cfg -l $lam -p CUDA
+#rm -rf *.dat
+somd-freenrg -C ../../input/sim_npt_2.cfg -l $lam -p CUDA
+#rm -rf *dat
+somd-freenrg -C ../../input/sim_md.cfg -l $lam -p CUDA
+cd ..
+done
+"""
+
 submit_lines = """
-#!/bin/bash"""+'\n'+'export CUDA_VISIBLE_DEVICES="' + str(args.device) + '"' + "\n"+"""
+#!/bin/bash""" + '\n' + 'export CUDA_VISIBLE_DEVICES="' + str(args.device) + '"' + "\n" + """
 for i in $(ls -d */);
 do
     echo $i;
@@ -41,6 +395,7 @@ do
 cd ../;
 done
 """
+
 
 def write_file(all_lines, output_file):
     a = open(output_file, "w")
@@ -72,6 +427,8 @@ def vdw_name_LJ(vdw_file):
             final_LJ = all_lines[el_no + 4].split()[1:]
             atom_lj_dic[el.split()[1]] = [initial_LJ, final_LJ]
     return atom_lj_dic
+
+
 '''
 #======================================================
 #not converting the files anymore
@@ -296,6 +653,7 @@ def complex_recharge(each_pert_abs, script_folder, charge_state, each_pert_outpu
         decharge_file(charge_file_input, recharge_file_output)
 '''
 
+
 def copy_file(each_pert_abs, solvation_complex, calculation_format, script_folder, each_pert_output_run):
     """
     :param each_pert_abs: the abslute path of each pert
@@ -311,9 +669,9 @@ def copy_file(each_pert_abs, solvation_complex, calculation_format, script_folde
         "cp " + each_pert_abs + "/" + solvation_complex + "/solvated.pdb " + solvation_complex + "/input/SYSTEM.pdb",
         "cp " + each_pert_abs + "/" + solvation_complex + "/solvated.rst7 " + solvation_complex + "/input/SYSTEM.rst7",
         "cp " + each_pert_abs + "/ligand.flex " + solvation_complex + "/input/MORPH.flex",
-        "cp " + script_folder + "/sim_* " + solvation_complex + "/input/",
-        "cp " + script_folder + "/cluster.sh " + solvation_complex + "/",
-        "cp " + script_folder + "/serial.sh "+solvation_complex+"/serial.sh",
+        # "cp " + script_folder + "/sim_* " + solvation_complex + "/input/",
+        #"cp " + script_folder + "/cluster.sh " + solvation_complex + "/",
+        #"cp " + script_folder + "/serial.sh " + solvation_complex + "/serial.sh",
         "cp " + each_pert_abs + "/MORPH." + calculation_format + ".pert " + solvation_complex + "/input/MORPH.pert"]
     for cmd in cmds:
         print(cmd)
@@ -367,7 +725,7 @@ def check_pert_state(each_pert_abs):
 
 
 def make_run_folder(each_pert_out, run_type):
-    each_pert_output_run = each_pert_out + "/"+run_type
+    each_pert_output_run = each_pert_out + "/" + run_type
     each_pert_out_run_free = each_pert_output_run + "/solvated"
     each_pert_out_run_bound = each_pert_output_run + "/complex"
     each_pert_out_run_free_input = each_pert_out_run_free + "/input"
@@ -388,13 +746,13 @@ if __name__ == "__main__":
     input_folder = os.path.abspath(args.input_folder)
     script_folder = os.path.abspath(args.script_folder)
     output_folder = os.path.abspath(args.output_folder)
-    output_submit = output_folder+"/"+args.submit
+    output_submit = output_folder + "/" + args.submit
     make_directory(output_folder)
     write_file(submit_lines, output_submit)
     all_pert_folder = os.listdir(input_folder)
     for each_pert in all_pert_folder:
-        each_pert_abs = os.path.abspath(input_folder)+"/"+each_pert
-        print ("the pert absolute path is:", each_pert_abs)
+        each_pert_abs = os.path.abspath(input_folder) + "/" + each_pert
+        print("the pert absolute path is:", each_pert_abs)
         charge_state = check_pert_state(each_pert_abs)
         each_pert_out = output_folder + "/" + each_pert
         make_directory(each_pert_out)
@@ -405,9 +763,54 @@ if __name__ == "__main__":
         for each_key in charge_state.keys():
             if charge_state[each_key]:
                 each_pert_output_run = make_run_folder(each_pert_out, each_key)
+
                 copy_file(each_pert_abs, solvation_complex="solvated", calculation_format=each_key,
                           script_folder=script_folder, each_pert_output_run=each_pert_output_run)
                 os.chdir(output_folder)
                 copy_file(each_pert_abs, solvation_complex="complex", calculation_format=each_key,
                           script_folder=script_folder, each_pert_output_run=each_pert_output_run)
                 os.chdir(output_folder)
+                if str(each_key) == "onestep" or each_key == "vdw":
+                    sim_min = sim_min + "lambda array = " + args.vmd_lambda
+                    sim_nvt_1 = sim_nvt_1 + "lambda array = " + args.vmd_lambda
+                    sim_nvt_2 = sim_nvt_2 + "lambda array = " + args.vmd_lambda
+                    sim_nvt_3 = sim_nvt_3 + "lambda array = " + args.vmd_lambda
+                    sim_nvt_4 = sim_nvt_4 + "lambda array = " + args.vmd_lambda
+                    sim_nvt_5 = sim_nvt_5 + "lambda array = " + args.vmd_lambda
+                    sim_npt_1 = sim_npt_1 + "lambda array = " + args.vmd_lambda
+                    sim_npt_2 = sim_npt_2 + "lambda array = " + args.vmd_lambda
+                    sim_md = sim_md + "lambda array = " + args.vmd_lambda
+                    serial_sh = serial_sh_1 + "\n" + "lamvals=( " + args.vmd_lambda + ")" + "\n" + serial_sh_2
+                    for i in ["complex", "solvated"]:
+                        write_file(serial_sh, str(each_key)+"/"+i + "/serial.sh")
+                        write_file(sim_min, i + "/input/sim_min.cfg")
+                        write_file(sim_nvt_1, i + "/input/sim_nvt_1.cfg")
+                        write_file(sim_nvt_2, i + "/input/sim_nvt_2.cfg")
+                        write_file(sim_nvt_3, i + "/input/sim_nvt_3.cfg")
+                        write_file(sim_nvt_4, i + "/input/sim_nvt_4.cfg")
+                        write_file(sim_nvt_5, i + "/input/sim_nvt_5.cfg")
+                        write_file(sim_npt_1, i + "/input/sim_npt_1.cfg")
+                        write_file(sim_npt_2, i + "/input/sim_npt_2.cfg")
+                        write_file(sim_md, i + "/input/sim_md.cfg")
+                elif str(each_key) == "charge":
+                    sim_min = sim_min + "lambda array = " + args.charge_lambda
+                    sim_nvt_1 = sim_nvt_1 + "lambda array = " + args.charge_lambda
+                    sim_nvt_2 = sim_nvt_2 + "lambda array = " + args.charge_lambda
+                    sim_nvt_3 = sim_nvt_3 + "lambda array = " + args.charge_lambda
+                    sim_nvt_4 = sim_nvt_4 + "lambda array = " + args.charge_lambda
+                    sim_nvt_5 = sim_nvt_5 + "lambda array = " + args.charge_lambda
+                    sim_npt_1 = sim_npt_1 + "lambda array = " + args.charge_lambda
+                    sim_npt_2 = sim_npt_2 + "lambda array = " + args.charge_lambda
+                    sim_md = sim_md + "lambda array = " + args.charge_lambda
+                    serial_sh = serial_sh_1 + "\n" + "lamvals=( " + args.charge_lambda + ")" + "\n" + serial_sh_2
+                    for i in ["complex", "solvated"]:
+                        write_file(serial_sh, i + "/serial.sh")
+                        write_file(sim_min, i + "/input/sim_min.cfg")
+                        write_file(sim_nvt_1, i + "/input/sim_nvt_1.cfg")
+                        write_file(sim_nvt_2, i + "/input/sim_nvt_2.cfg")
+                        write_file(sim_nvt_3, i + "/input/sim_nvt_3.cfg")
+                        write_file(sim_nvt_4, i + "/input/sim_nvt_4.cfg")
+                        write_file(sim_nvt_5, i + "/input/sim_nvt_5.cfg")
+                        write_file(sim_npt_1, i + "/input/sim_npt_1.cfg")
+                        write_file(sim_npt_2, i + "/input/sim_npt_2.cfg")
+                        write_file(sim_md, i + "/input/sim_md.cfg")
