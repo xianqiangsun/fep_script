@@ -770,47 +770,48 @@ if __name__ == "__main__":
                 copy_file(each_pert_abs, solvation_complex="complex", calculation_format=each_key,
                           script_folder=script_folder, each_pert_output_run=each_pert_output_run)
                 os.chdir(output_folder)
+
                 if str(each_key) == "onestep" or each_key == "vdw":
-                    sim_min = sim_min + "lambda array = " + args.vmd_lambda
-                    sim_nvt_1 = sim_nvt_1 + "lambda array = " + args.vmd_lambda
-                    sim_nvt_2 = sim_nvt_2 + "lambda array = " + args.vmd_lambda
-                    sim_nvt_3 = sim_nvt_3 + "lambda array = " + args.vmd_lambda
-                    sim_nvt_4 = sim_nvt_4 + "lambda array = " + args.vmd_lambda
-                    sim_nvt_5 = sim_nvt_5 + "lambda array = " + args.vmd_lambda
-                    sim_npt_1 = sim_npt_1 + "lambda array = " + args.vmd_lambda
-                    sim_npt_2 = sim_npt_2 + "lambda array = " + args.vmd_lambda
-                    sim_md = sim_md + "lambda array = " + args.vmd_lambda
-                    serial_sh = serial_sh_1 + "\n" + "lamvals=( " + args.vmd_lambda + ")" + "\n" + serial_sh_2
+                    #sim_min = sim_min + "lambda array = " + args.vmd_lambda
+                    #sim_nvt_1 = sim_nvt_1 + "lambda array = " + args.vmd_lambda
+                    #sim_nvt_2 = sim_nvt_2 + "lambda array = " + args.vmd_lambda
+                    #sim_nvt_3 = sim_nvt_3 + "lambda array = " + args.vmd_lambda
+                    #sim_nvt_4 = sim_nvt_4 + "lambda array = " + args.vmd_lambda
+                    #sim_nvt_5 = sim_nvt_5 + "lambda array = " + args.vmd_lambda
+                    #sim_npt_1 = sim_npt_1 + "lambda array = " + args.vmd_lambda
+                    #sim_npt_2 = sim_npt_2 + "lambda array = " + args.vmd_lambda
+                    #sim_md = sim_md + "lambda array = " + args.vmd_lambda
+                    #serial_sh = serial_sh_1 + "\n" + "lamvals=( " + args.vmd_lambda + " )" + "\n" + serial_sh_2
                     for i in ["complex", "solvated"]:
-                        write_file(serial_sh, str(each_key)+"/"+i + "/serial.sh")
-                        write_file(sim_min, i + "/input/sim_min.cfg")
-                        write_file(sim_nvt_1, i + "/input/sim_nvt_1.cfg")
-                        write_file(sim_nvt_2, i + "/input/sim_nvt_2.cfg")
-                        write_file(sim_nvt_3, i + "/input/sim_nvt_3.cfg")
-                        write_file(sim_nvt_4, i + "/input/sim_nvt_4.cfg")
-                        write_file(sim_nvt_5, i + "/input/sim_nvt_5.cfg")
-                        write_file(sim_npt_1, i + "/input/sim_npt_1.cfg")
-                        write_file(sim_npt_2, i + "/input/sim_npt_2.cfg")
-                        write_file(sim_md, i + "/input/sim_md.cfg")
+                        write_file(serial_sh_1 + "\n" + "lamvals=( " + args.vmd_lambda + " )" + "\n" + serial_sh_2, each_pert_out+"/"+str(each_key)+"/"+i + "/serial.sh")
+                        write_file( sim_min + "lambda array = " + args.vmd_lambda, each_pert_out+"/"+str(each_key)+"/"+i + "/input/sim_min.cfg")
+                        write_file(sim_nvt_1 + "lambda array = " + args.vmd_lambda, each_pert_out+"/"+str(each_key)+"/"+i + "/input/sim_nvt_1.cfg")
+                        write_file(sim_nvt_2+ "lambda array = " + args.vmd_lambda, each_pert_out+"/"+str(each_key)+"/"+i + "/input/sim_nvt_2.cfg")
+                        write_file(sim_nvt_3+ "lambda array = " + args.vmd_lambda, each_pert_out+"/"+str(each_key)+"/"+i + "/input/sim_nvt_3.cfg")
+                        write_file(sim_nvt_4+ "lambda array = " + args.vmd_lambda, each_pert_out+"/"+str(each_key)+"/"+i + "/input/sim_nvt_4.cfg")
+                        write_file(sim_nvt_5+ "lambda array = " + args.vmd_lambda, each_pert_out+"/"+str(each_key)+"/"+i + "/input/sim_nvt_5.cfg")
+                        write_file(sim_npt_1+ "lambda array = " + args.vmd_lambda, each_pert_out+"/"+str(each_key)+"/"+i + "/input/sim_npt_1.cfg")
+                        write_file(sim_npt_2+ "lambda array = " + args.vmd_lambda, each_pert_out+"/"+str(each_key)+"/"+i + "/input/sim_npt_2.cfg")
+                        write_file(sim_md+ "lambda array = " + args.vmd_lambda, each_pert_out+"/"+str(each_key)+"/"+i + "/input/sim_md.cfg")
                 elif str(each_key) == "charge":
-                    sim_min = sim_min + "lambda array = " + args.charge_lambda
-                    sim_nvt_1 = sim_nvt_1 + "lambda array = " + args.charge_lambda
-                    sim_nvt_2 = sim_nvt_2 + "lambda array = " + args.charge_lambda
-                    sim_nvt_3 = sim_nvt_3 + "lambda array = " + args.charge_lambda
-                    sim_nvt_4 = sim_nvt_4 + "lambda array = " + args.charge_lambda
-                    sim_nvt_5 = sim_nvt_5 + "lambda array = " + args.charge_lambda
-                    sim_npt_1 = sim_npt_1 + "lambda array = " + args.charge_lambda
-                    sim_npt_2 = sim_npt_2 + "lambda array = " + args.charge_lambda
-                    sim_md = sim_md + "lambda array = " + args.charge_lambda
-                    serial_sh = serial_sh_1 + "\n" + "lamvals=( " + args.charge_lambda + ")" + "\n" + serial_sh_2
+                    #sim_min = sim_min + "lambda array = " + args.charge_lambda
+                    #sim_nvt_1 = sim_nvt_1 + "lambda array = " + args.charge_lambda
+                    #sim_nvt_2 = sim_nvt_2 + "lambda array = " + args.charge_lambda
+                    #sim_nvt_3 = sim_nvt_3 + "lambda array = " + args.charge_lambda
+                    #sim_nvt_4 = sim_nvt_4 + "lambda array = " + args.charge_lambda
+                    #sim_nvt_5 = sim_nvt_5 + "lambda array = " + args.charge_lambda
+                    #sim_npt_1 = sim_npt_1 + "lambda array = " + args.charge_lambda
+                    #sim_npt_2 = sim_npt_2 + "lambda array = " + args.charge_lambda
+                    #sim_md = sim_md + "lambda array = " + args.charge_lambda
+                    #serial_sh = serial_sh_1 + "\n" + "lamvals=( " + args.charge_lambda + " )" + "\n" + serial_sh_2
                     for i in ["complex", "solvated"]:
-                        write_file(serial_sh, i + "/serial.sh")
-                        write_file(sim_min, i + "/input/sim_min.cfg")
-                        write_file(sim_nvt_1, i + "/input/sim_nvt_1.cfg")
-                        write_file(sim_nvt_2, i + "/input/sim_nvt_2.cfg")
-                        write_file(sim_nvt_3, i + "/input/sim_nvt_3.cfg")
-                        write_file(sim_nvt_4, i + "/input/sim_nvt_4.cfg")
-                        write_file(sim_nvt_5, i + "/input/sim_nvt_5.cfg")
-                        write_file(sim_npt_1, i + "/input/sim_npt_1.cfg")
-                        write_file(sim_npt_2, i + "/input/sim_npt_2.cfg")
-                        write_file(sim_md, i + "/input/sim_md.cfg")
+                        write_file(serial_sh_1 + "\n" + "lamvals=( " + args.charge_lambda + " )" + "\n" + serial_sh_2, each_pert_out+"/"+str(each_key)+"/"+i + "/serial.sh")
+                        write_file( sim_min + "lambda array = " + args.charge_lambda, each_pert_out+"/"+str(each_key)+"/"+i + "/input/sim_min.cfg")
+                        write_file(sim_nvt_1 + "lambda array = " + args.charge_lambda, each_pert_out+"/"+str(each_key)+"/"+i + "/input/sim_nvt_1.cfg")
+                        write_file(sim_nvt_2+ "lambda array = " + args.charge_lambda, each_pert_out+"/"+str(each_key)+"/"+i + "/input/sim_nvt_2.cfg")
+                        write_file(sim_nvt_3+ "lambda array = " + args.charge_lambda, each_pert_out+"/"+str(each_key)+"/"+i + "/input/sim_nvt_3.cfg")
+                        write_file(sim_nvt_4+ "lambda array = " + args.charge_lambda, each_pert_out+"/"+str(each_key)+"/"+i + "/input/sim_nvt_4.cfg")
+                        write_file(sim_nvt_5+ "lambda array = " + args.charge_lambda, each_pert_out+"/"+str(each_key)+"/"+i + "/input/sim_nvt_5.cfg")
+                        write_file(sim_npt_1+ "lambda array = " + args.charge_lambda, each_pert_out+"/"+str(each_key)+"/"+i + "/input/sim_npt_1.cfg")
+                        write_file(sim_npt_2+ "lambda array = " + args.charge_lambda, each_pert_out+"/"+str(each_key)+"/"+i + "/input/sim_npt_2.cfg")
+                        write_file(sim_md+ "lambda array = " + args.charge_lambda, each_pert_out+"/"+str(each_key)+"/"+i + "/input/sim_md.cfg")
