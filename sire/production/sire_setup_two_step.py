@@ -50,7 +50,6 @@ center solute = True
 reaction field dielectric = 78.3
 minimal coordinate saving = True
 random seed = None
-lambda array =  0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
 """
 
 sim_md = """
@@ -81,7 +80,6 @@ center solute = True
 reaction field dielectric = 78.3
 minimal coordinate saving = True
 random seed = 100
-lambda array =  0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
 """
 
 sim_nvt_1 = """
@@ -113,7 +111,6 @@ center solute = True
 reaction field dielectric = 78.3
 minimal coordinate saving = True
 random seed = 100
-lambda array =  0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
 """
 sim_nvt_2 = """
 #Input file
@@ -144,7 +141,6 @@ center solute = True
 reaction field dielectric = 78.3
 minimal coordinate saving = True
 random seed = None
-lambda array =  0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
 """
 sim_nvt_3 = """
 #Input file
@@ -175,7 +171,6 @@ center solute = True
 reaction field dielectric = 78.3
 minimal coordinate saving = True
 random seed = 100
-lambda array =  0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
 """
 sim_nvt_4 = """
 #Input file
@@ -206,7 +201,6 @@ center solute = True
 reaction field dielectric = 78.3
 minimal coordinate saving = True
 random seed = 100
-lambda array =  0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
 """
 sim_nvt_5 = """
 #Input file
@@ -236,7 +230,6 @@ center solute = True
 reaction field dielectric = 78.3
 minimal coordinate saving = True
 random seed = 100
-lambda array =  0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
 """
 
 sim_npt_1 = """
@@ -267,7 +260,6 @@ center solute = True
 reaction field dielectric = 78.3
 minimal coordinate saving = True
 random seed = 100
-lambda array =  0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
 """
 
 sim_npt_2 = """
@@ -298,7 +290,6 @@ center solute = True
 reaction field dielectric = 78.3
 minimal coordinate saving = True
 random seed = 100
-lambda array =  0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
 """
 
 sim_md = """
@@ -329,7 +320,6 @@ center solute = True
 reaction field dielectric = 78.3
 minimal coordinate saving = True
 random seed = 100
-lambda array =  0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
 """
 serial_sh_1 = """
 #!/bin/bash
