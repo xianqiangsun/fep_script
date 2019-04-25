@@ -21,13 +21,12 @@ parser.add_argument('-sub', dest='submit', default='submit.sh')
 parser.add_argument('-c', dest='convert', default=True)
 parser.add_argument('-d', dest='device', default="0, 1", help="the available device number for the simulations")
 parser.add_argument('-vdw', dest='vmd_lambda',
-                    default="0.000 0.005 0.071 0.137 0.203 0.269 0.335 0.401 0.467 0.533 0.599 0.665 0.731 0.797 0.863 0.929 0.995 1.000")
-parser.add_argument('-charge', dest='charge_lambda', default="0.000 0.137 0.335 0.533 0.665 0.797 0.929 1.000")
+                    default="0.000 , 0.005 , 0.071 , 0.137 , 0.203 , 0.269 , 0.335 , 0.401 , 0.467 , 0.533 , 0.599 , 0.665 , 0.731 , 0.797 , 0.863 , 0.929 , 0.995 , 1.000")
+parser.add_argument('-charge', dest='charge_lambda', default="0.000 , 0.137 , 0.335 , 0.533 , 0.665 , 0.797 , 0.929 , 1.000")
 
 args = parser.parse_args()
 
-sim_min = """
-#Input file
+sim_min = """#Input file
 morphfile = ../../input/MORPH.pert
 topfile= ../../input/SYSTEM.parm7
 crdfile= ../../input/SYSTEM.rst7
@@ -52,8 +51,7 @@ minimal coordinate saving = True
 random seed = None
 """
 
-sim_md = """
-#Input file
+sim_md = """#Input file
 morphfile = ../../input/MORPH.pert
 topfile= ../../input/SYSTEM.parm7
 crdfile= ../../input/SYSTEM.rst7
@@ -82,8 +80,7 @@ minimal coordinate saving = True
 random seed = 100
 """
 
-sim_nvt_1 = """
-#Input file
+sim_nvt_1 = """#Input file
 morphfile = ../../input/MORPH.pert
 topfile= ../../input/SYSTEM.parm7
 crdfile= ../../input/SYSTEM.rst7
@@ -112,8 +109,7 @@ reaction field dielectric = 78.3
 minimal coordinate saving = True
 random seed = 100
 """
-sim_nvt_2 = """
-#Input file
+sim_nvt_2 = """#Input file
 morphfile = ../../input/MORPH.pert
 topfile= ../../input/SYSTEM.parm7
 crdfile= ../../input/SYSTEM.rst7
@@ -142,8 +138,7 @@ reaction field dielectric = 78.3
 minimal coordinate saving = True
 random seed = None
 """
-sim_nvt_3 = """
-#Input file
+sim_nvt_3 = """#Input file
 morphfile = ../../input/MORPH.pert
 topfile= ../../input/SYSTEM.parm7
 crdfile= ../../input/SYSTEM.rst7
@@ -172,8 +167,7 @@ reaction field dielectric = 78.3
 minimal coordinate saving = True
 random seed = 100
 """
-sim_nvt_4 = """
-#Input file
+sim_nvt_4 = """#Input file
 morphfile = ../../input/MORPH.pert
 topfile= ../../input/SYSTEM.parm7
 crdfile= ../../input/SYSTEM.rst7
@@ -202,8 +196,7 @@ reaction field dielectric = 78.3
 minimal coordinate saving = True
 random seed = 100
 """
-sim_nvt_5 = """
-#Input file
+sim_nvt_5 = """#Input file
 morphfile = ../../input/MORPH.pert
 topfile= ../../input/SYSTEM.parm7
 crdfile= ../../input/SYSTEM.rst7
@@ -232,8 +225,7 @@ minimal coordinate saving = True
 random seed = 100
 """
 
-sim_npt_1 = """
-#Input file
+sim_npt_1 = """#Input file
 morphfile = ../../input/MORPH.pert
 topfile= ../../input/SYSTEM.parm7
 crdfile= ../../input/SYSTEM.rst7
@@ -262,8 +254,7 @@ minimal coordinate saving = True
 random seed = 100
 """
 
-sim_npt_2 = """
-#Input file
+sim_npt_2 = """#Input file
 morphfile = ../../input/MORPH.pert
 topfile= ../../input/SYSTEM.parm7
 crdfile= ../../input/SYSTEM.rst7
@@ -292,8 +283,7 @@ minimal coordinate saving = True
 random seed = 100
 """
 
-sim_md = """
-#Input file
+sim_md = """#Input file
 morphfile = ../../input/MORPH.pert
 topfile= ../../input/SYSTEM.parm7
 crdfile= ../../input/SYSTEM.rst7
@@ -773,7 +763,7 @@ if __name__ == "__main__":
                     # sim_md = sim_md + "lambda array = " + args.vmd_lambda
                     # serial_sh = serial_sh_1 + "\n" + "lamvals=( " + args.vmd_lambda + " )" + "\n" + serial_sh_2
                     for i in ["complex", "solvated"]:
-                        write_file(serial_sh_1 + "\n" + "lamvals=( " + args.vmd_lambda + " )" + "\n" + serial_sh_2,
+                        write_file(serial_sh_1 + "\n" + "lamvals=( " + args.vmd_lambda.replace(",","") + " )" + "\n" + serial_sh_2,
                                    each_pert_out + "/" + str(each_key) + "/" + i + "/serial.sh")
                         write_file(sim_min + "lambda array = " + args.vmd_lambda,
                                    each_pert_out + "/" + str(each_key) + "/" + i + "/input/sim_min.cfg")
@@ -805,7 +795,7 @@ if __name__ == "__main__":
                     # sim_md = sim_md + "lambda array = " + args.charge_lambda
                     # serial_sh = serial_sh_1 + "\n" + "lamvals=( " + args.charge_lambda + " )" + "\n" + serial_sh_2
                     for i in ["complex", "solvated"]:
-                        write_file(serial_sh_1 + "\n" + "lamvals=( " + args.charge_lambda + " )" + "\n" + serial_sh_2,
+                        write_file(serial_sh_1 + "\n" + "lamvals=( " + args.charge_lambda.replace(",","") + " )" + "\n" + serial_sh_2,
                                    each_pert_out + "/" + str(each_key) + "/" + i + "/serial.sh")
                         write_file(sim_min + "lambda array = " + args.charge_lambda,
                                    each_pert_out + "/" + str(each_key) + "/" + i + "/input/sim_min.cfg")
