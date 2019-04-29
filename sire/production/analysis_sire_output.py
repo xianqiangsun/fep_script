@@ -37,7 +37,7 @@ parser.add_argument('-gf', dest='gradient_file', default='simfile.dat')
 # parser.add_argument("-step", dest='steps', default=-1, type=int, help="how many lines to keep")
 # parser.add_argument("-skip", dest='skip', default=-1, type=int, help="how many lines to keep")
 parser.add_argument("-p", dest='percent', default=60, type=int, help="how many percents of data to keep")
-parser.add_argument("-o", dest='output_vds', default="energy.csv", type=str, help="the output energy file")
+parser.add_argument("-o", dest='output_csv', default="energy.csv", type=str, help="the output energy file")
 
 args = parser.parse_args()
 
@@ -61,48 +61,56 @@ def list_folder(input):
 def run_analysis(output_file):
     a = open(output_file, 'r')
     all_lines = [i.rstrip() for i in a.readlines()]
-    ti = float(all_lines[-1])
-    mbar = float(all_lines[-3].split(",")[0])
-    mbar_sd = float(all_lines[-3].split(",")[1])
+    ti = float((all_lines[-1]).rstrip().split("#")[0].rstrip())
+    mbar = float((all_lines[-3].split(",")[0]).rstrip().split("#")[0].rstrip())
+    mbar_sd = float((all_lines[-3].split(",")[1].split("#")[0]).rstrip())
+
     return ti, mbar, mbar_sd
 
 
 if __name__ == "__main__":
     input_folder = os.path.abspath(args.input_folder)
-    out_sim = args.out_sim
+    simfile = args.simfile
     all_dir = [input_folder + "/" + i for i in os.listdir(input_folder) if os.path.isdir(input_folder + "/" + i)]
     all_energy_dic = {}
     for ed in all_dir:
-        df_mbar = pd.DataFrame(np.array([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]),
+        df_mbar = pd.DataFrame(np.array([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]],dtype='float32'),
                                columns=['vdw', 'charge', 'onestep', 'decharge', 'recharge'],
                                index=["complex", "solvated"])
-        df_mbar_error = pd.DataFrame(np.array([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]),
+        df_mbar_error = pd.DataFrame(np.array([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]],dtype='float32'),
                                      columns=['vdw', 'charge', 'onestep', 'decharge', 'recharge'],
                                      index=["complex", "solvated"])
-        df_ti = pd.DataFrame(np.array([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]),
+        df_ti = pd.DataFrame(np.array([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]],dtype='float32'),
                              columns=['vdw', 'charge', 'onestep', 'decharge', 'recharge'],
                              index=["complex", "solvated"])
         os.chdir(ed)
+        print (ed)
         ed_dir = list_folder(ed)
-        transformation_name = ed.split("/")[-1]
 
-        for ed in ed_dir:
+
+        for ed_calculation in ed_dir:
+            os.chdir(ed_calculation)
             for et in ["complex", "solvated"]:
                 os.chdir(et + "/output")
                 output_file = "out_" + str(args.percent) + ".dat"
                 cmd = "analyse_freenrg mbar --lam -i lam*/" + str(
-                    out_sim) + " --temperature 298 -o " + output_file + " --subsampling --overlap -p " + args.percent
+                    simfile) + " --temperature 298 -o " + output_file + " --subsampling --overlap -p " + str(args.percent)
                 os.system(cmd)
                 ti_value, mbar_value, mbar_sd = run_analysis(output_file=output_file)
-                df_mbar[ed][et] = mbar_value
-                df_mbar_error[ed][et] = mbar_sd
-                df_ti[ed][et] = ti_value
-
+                print (ti_value, mbar_value, mbar_sd)
+                df_mbar[ed_calculation][et] = mbar_value
+                df_mbar_error[ed_calculation][et] = mbar_sd
+                df_ti[ed_calculation][et] = ti_value
+                os.chdir("../../")
+            os.chdir("../")
+        print ("df_mbar",df_mbar)
+        print ("df_ti", df_ti)
         df_mbar["sum"] = df_mbar.sum(axis=1)
         df_mbar_error["sum"] = df_mbar_error.sum(axis=1)
         df_ti["sum"] = df_ti.sum(axis=1)
         mbar_energy = df_mbar["sum"]["solvated"] - df_mbar["sum"]["complex"]
         ti_energy = df_ti["sum"]["solvated"] - df_ti["sum"]["complex"]
+        transformation_name = ed.split("/")[-1]
         all_energy_dic[transformation_name] = [mbar_energy, ti_energy]
     os.chdir(input_folder)
     a = pd.DataFrame(all_energy_dic, index=["ti (kcal/mol)", "mbar (kcal/mol)"]).transpose()
